@@ -39,6 +39,7 @@ public class VertexElement implements Comparable<VertexElement> {
 	private double xCoord, yCoord;
 	
 	private boolean isBorderNode = false;
+	private boolean isITNode = false;
 
 	/**Pointer to the Graph Controller associated with the vertex*/
 	protected Gcontroller graph;
@@ -205,6 +206,14 @@ public class VertexElement implements Comparable<VertexElement> {
 	
 	public boolean isBorderNode(){
 	    return this.isBorderNode;
+	}
+	
+	public void setIsITNode(boolean isITNode){
+		this.isITNode = isITNode;
+	}
+	
+	public boolean isITNode(){
+		return this.isITNode;
 	}
 
 	public VertexParams getVertexParams(){

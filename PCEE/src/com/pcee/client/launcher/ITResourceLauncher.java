@@ -28,25 +28,26 @@ public class ITResourceLauncher {
 	 */
 	public static PCEPResponseFrame getVertex(int cpu, int ram, int storage) {
 
-		PCEPAddress serverAddress = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
-		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
-		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
-
-		PCEPRequestFrame request = PCEPRequestFrameFactory.generateITResourceRequestFrame(RP, itResource);
-		PCEPMessage message = PCEPMessageFactory.generateMessage(request);
-		message.setAddress(serverAddress);
-
-		ClientTest.lm.getClientModule().sendMessage(message, ModuleEnum.CLIENT_MODULE);
-
-		PCEPMessage responseMessage = null;
-		try {
-			responseMessage = ClientTest.messageQueue.take();
-			TopologyUpdateLauncher.timeStampsReceivedMilli.add(System.currentTimeMillis());
-			TopologyUpdateLauncher.timeStampsReceivedNano.add(System.nanoTime());
-		} catch (InterruptedException e) {
-			return null;
-		}
-
-		return PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
+//		PCEPAddress serverAddress = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
+//		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
+//		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
+//
+//		PCEPRequestFrame request = PCEPRequestFrameFactory.generateITResourceRequestFrame(RP, itResource);
+//		PCEPMessage message = PCEPMessageFactory.generateMessage(request);
+//		message.setAddress(serverAddress);
+//
+//		ClientTest.lm.getClientModule().sendMessage(message, ModuleEnum.CLIENT_MODULE);
+//
+//		PCEPMessage responseMessage = null;
+//		try {
+//			responseMessage = ClientTest.messageQueue.take();
+//			TopologyUpdateLauncher.timeStampsReceivedMilli.add(System.currentTimeMillis());
+//			TopologyUpdateLauncher.timeStampsReceivedNano.add(System.nanoTime());
+//		} catch (InterruptedException e) {
+//			return null;
+//		}
+//
+//		return PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
+		return null;
 	}
 }

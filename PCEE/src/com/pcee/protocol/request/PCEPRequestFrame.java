@@ -69,7 +69,6 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 	PCEPReportedRouteObject RRO;
 	PCEPIncludeRouteObject IRO;
 	PCEPLoadBalancingObject loadBalancing;
-	/* added for ITResourceObject */
 	PCEPITResourceObject itResource;
 	PCEPGeneralizedEndPointsTNAObject generalizedEndPointsTNA;
 
@@ -77,15 +76,6 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 			PCEPEndPointsObject endPoints) {
 		this.RP = RP;
 		this.endPoints = endPoints;
-	}
-
-	/**
-	 * added for ITResourceObject
-	 */
-	public PCEPRequestFrame(PCEPRequestParametersObject RP,
-			PCEPITResourceObject itResource) {
-		this.RP = RP;
-		this.itResource = itResource;
 	}
 
 	public PCEPRequestFrame(PCEPRequestParametersObject RP,

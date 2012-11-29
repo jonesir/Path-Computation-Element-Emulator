@@ -29,6 +29,7 @@ import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPMetricObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
 import com.pcee.protocol.request.PCEPRequestFrame;
@@ -58,7 +59,8 @@ public class ClientTest {
 
 	/** Launch point to initialize the client GUI */
 	public static void main(String[] args) throws Exception {
-
+		initClient();
+		getPath("192.169.2.2","192.169.2.18",10,40);
 	}
 
 	public static void initClient() {
@@ -68,7 +70,15 @@ public class ClientTest {
 		lm.getClientModule().registerConnection(address, false, true,false);
 	}
 
-	public static PCEPResponseFrame getPath(String sourceID, String destID, float bw) {
+	/**
+	 * Request Parameter Format [ source, destination, bandwidth, delay, pathCount ] 
+	 * @param sourceID
+	 * @param destID
+	 * @param bw
+	 * @param delay
+	 * @return
+	 */
+	public static PCEPResponseFrame getPath(String sourceID, String destID, float bw, float delay) {
 
 		// Address of the PCE server
 		PCEPAddress address = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
@@ -78,11 +88,13 @@ public class ClientTest {
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
 		PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject("1", "0", sourceAddress, destinationAddress);
 		PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", bw);
-//		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, 3, 30, 300);
+		PCEPMetricObject pathObject = PCEPObjectFrameFactory.generatePCEPMetricObject("1", "0", "0", "1", 1, GlobalCfg.singlePath?1:0);
+		PCEPMetricObject delayObject = PCEPObjectFrameFactory.generatePCEPMetricObject("1", "0", "0", "1", 2, delay);
 
 		PCEPRequestFrame requestFrame = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
 		requestFrame.insertBandwidthObject(bandwidth);
-//		requestFrame.insertITResourceObject(itResource);
+		requestFrame.insertMetricObject(pathObject);
+		requestFrame.insertMetricObject(delayObject);
 		PCEPMessage message = PCEPMessageFactory.generateMessage(requestFrame);
 		message.setAddress(address);
 		String mString = message.binaryInformation();
@@ -102,13 +114,21 @@ public class ClientTest {
 			return null;
 		}
 		
-		System.out.println("Repnose RETURNED!!!!!!!!!!!!!!!!!!");
-
 		return PCEPResponseFrameFactory.getPathComputationResponseFrame(response);
 	}
 	
-	public static PCEPResponseFrame getPath(String sourceID, float bw, int cpu, int ram, int storage) {
-
+	/**
+	 * Request Parameter Format [ source, bandwidth, delay, pathCount, IT ] 
+	 * 
+	 * @param sourceID
+	 * @param bw
+	 * @param cpu
+	 * @param ram
+	 * @param storage
+	 * @return
+	 */
+	public static PCEPResponseFrame getPath(String sourceID, float bw, float delay, int cpu, int ram, int storage) {
+	
 		// Address of the PCE server
 		PCEPAddress address = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
 		PCEPAddress sourceAddress = new PCEPAddress(sourceID, false);
@@ -117,15 +137,18 @@ public class ClientTest {
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
 		PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject("1", "0", sourceAddress, destinationAddress);
 		PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", bw);
+		PCEPMetricObject pathObject = PCEPObjectFrameFactory.generatePCEPMetricObject("1", "0", "0","1", 1, GlobalCfg.singlePath?1:0);
+		PCEPMetricObject delayObject = PCEPObjectFrameFactory.generatePCEPMetricObject("1", "0", "0", "1", 2, delay);
 		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
 
 		PCEPRequestFrame requestFrame = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
 		requestFrame.insertBandwidthObject(bandwidth);
+		requestFrame.insertMetricObject(pathObject);
+		requestFrame.insertMetricObject(delayObject);
 		requestFrame.insertITResourceObject(itResource);
 		PCEPMessage message = PCEPMessageFactory.generateMessage(requestFrame);
 		message.setAddress(address);
-		String mString = message.binaryInformation();
-		log(mString);
+		
 		TopologyUpdateLauncher.requestCount++;
 		TopologyUpdateLauncher.timeStampsSentMilli.add(System.currentTimeMillis());
 		TopologyUpdateLauncher.timeStampsSentNano.add(System.nanoTime());
@@ -135,6 +158,7 @@ public class ClientTest {
 		PCEPMessage response;
 		try {
 			response = messageQueue.take();
+			GuiLauncher.debug("ClientTest: Response arrives");
 			TopologyUpdateLauncher.timeStampsReceivedMilli.add(System.currentTimeMillis());
 			TopologyUpdateLauncher.timeStampsReceivedNano.add(System.nanoTime());
 		} catch (InterruptedException e) {
@@ -149,35 +173,77 @@ public class ClientTest {
 	 */
 	public static PCEPResponseFrame getVertex(int cpu, int ram, int storage) {
 
-		PCEPAddress serverAddress = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
+//		PCEPAddress serverAddress = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
+//		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
+//		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
+//
+//		PCEPMessage message = PCEPMessageFactory.generateMessage(request);
+//		message.setAddress(serverAddress);
+//
+//		TopologyUpdateLauncher.timeStampsVertexSentMilli.add(System.currentTimeMillis());
+//		TopologyUpdateLauncher.timeStampsVertexSentNano.add(System.nanoTime());
+//		
+//		lm.getClientModule().sendMessage(message, ModuleEnum.CLIENT_MODULE);
+//
+//		PCEPMessage responseMessage = null;
+//		try {
+//			responseMessage = ClientTest.messageQueue.take();
+//			GuiLauncher.debug("ClientTest: Response arrives");
+//			TopologyUpdateLauncher.timeStampsVertexReceivedMilli.add(System.currentTimeMillis());
+//			TopologyUpdateLauncher.timeStampsVertexReceivedNano.add(System.nanoTime());
+//		} catch (InterruptedException e) {
+//			return null;
+//		}
+//		PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
+//		System.out.println("responseFrame.extractNoVertexParams() = " + responseFrame.extractNoVertexObject());
+//		System.out.println("responseFrame.extractExplicitRouteObjectList() = " + responseFrame.extractExplicitRouteObjectList());
+//		System.out.println("response Message in ClientTest.getVertex()" + responseMessage);
+//		return PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
+		return null;
+	}
+	
+	
+	public static PCEPResponseFrame getPath(String sourceID, String destID, float bw) {
+
+		// Address of the PCE server
+		PCEPAddress address = new PCEPAddress(GlobalCfg.pcrAddress, GlobalCfg.pcrPort);
+		PCEPAddress sourceAddress = new PCEPAddress(sourceID, false);
+		PCEPAddress destinationAddress = new PCEPAddress(destID, false);
+
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "0", "1", "432");
-		PCEPITResourceObject itResource = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
+		PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject("1", "0", sourceAddress, destinationAddress);
+		PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", bw);
+		PCEPMetricObject pathObject = PCEPObjectFrameFactory.generatePCEPMetricObject("1", "0", "0", "1", 1, GlobalCfg.singlePath?1:0);
 
-		PCEPRequestFrame request = PCEPRequestFrameFactory.generateITResourceRequestFrame(RP, itResource);
-		PCEPMessage message = PCEPMessageFactory.generateMessage(request);
-		message.setAddress(serverAddress);
+		PCEPRequestFrame requestFrame = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
+		requestFrame.insertBandwidthObject(bandwidth);
+		requestFrame.insertMetricObject(pathObject);
+		PCEPMessage message = PCEPMessageFactory.generateMessage(requestFrame);
+		message.setAddress(address);
+		String mString = message.binaryInformation();
+		log(mString);
+		TopologyUpdateLauncher.requestCount++;
+		TopologyUpdateLauncher.timeStampsSentMilli.add(System.currentTimeMillis());
+		TopologyUpdateLauncher.timeStampsSentNano.add(System.nanoTime());
 
-		TopologyUpdateLauncher.timeStampsVertexSentMilli.add(System.currentTimeMillis());
-		TopologyUpdateLauncher.timeStampsVertexSentNano.add(System.nanoTime());
-		
-		lm.getClientModule().sendMessage(message, ModuleEnum.CLIENT_MODULE);
+		lm.getClientModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
 
-		PCEPMessage responseMessage = null;
+		PCEPMessage response;
 		try {
-			responseMessage = ClientTest.messageQueue.take();
-			TopologyUpdateLauncher.timeStampsVertexReceivedMilli.add(System.currentTimeMillis());
-			TopologyUpdateLauncher.timeStampsVertexReceivedNano.add(System.nanoTime());
+			response = messageQueue.take();
+			GuiLauncher.debug("ClientTest: Response arrives");
+			TopologyUpdateLauncher.timeStampsReceivedMilli.add(System.currentTimeMillis());
+			TopologyUpdateLauncher.timeStampsReceivedNano.add(System.nanoTime());
 		} catch (InterruptedException e) {
 			return null;
 		}
-		PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
-		System.out.println("responseFrame.extractNoVertexParams() = " + responseFrame.extractNoVertexObject());
-		System.out.println("responseFrame.extractExplicitRouteObjectList() = " + responseFrame.extractExplicitRouteObjectList());
-		System.out.println("response Message in ClientTest.getVertex()" + responseMessage);
-		return PCEPResponseFrameFactory.getITResourceResponseFrame(responseMessage);
+		
+		return PCEPResponseFrameFactory.getPathComputationResponseFrame(response);
 	}
 
 	public static void log(String logString) {
 		System.out.println("ClientTest::: " + logString);
 	}
+	
+	
 }

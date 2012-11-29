@@ -19,6 +19,7 @@ package com.pcee.architecture.computationmodule.threadpool;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import com.benchmark.ResultLogger;
 import com.graph.elements.vertex.VertexElement;
@@ -36,10 +37,12 @@ import com.pcee.architecture.ModuleEnum;
 import com.pcee.architecture.ModuleManagement;
 import com.pcee.architecture.computationmodule.ComputationModuleMLImpl;
 import com.pcee.client.ClientTest;
+import com.pcee.client.GuiLauncher;
 import com.pcee.logger.Logger;
 import com.pcee.protocol.message.PCEPMessage;
 import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
+import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPNoPathObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPNoVertexObject;
@@ -85,50 +88,57 @@ public class WorkerTaskForMultiPathWithITResourceSupport implements Runnable {
 		response.setVertexRequest(request.isVertexRequest());
 
 		if (request.isVertexRequest()) {
-			SingleVertexConstraint vconstraint = (SingleVertexConstraint)request.getVConstraint();
-			SingleVertexAlgorithmImpl valgo = (SingleVertexAlgorithmImpl)request.getVAlgo();
+			SingleVertexConstraint vconstraint = (SingleVertexConstraint) request.getVConstraint();
+			SingleVertexAlgorithmImpl valgo = (SingleVertexAlgorithmImpl) request.getVAlgo();
 			VertexElement element = valgo.searchVertex(graph, vconstraint);
 
 			if (element != null) {
 				response.setVertex(element);
+				if (ComputationModuleMLImpl.singlePath)
+					request.getConstrains().setDestination(element);
+				else
+					request.getMConstraints().setDestination(element);
 				System.out.println("Vertex Found in WorkerTaskForMulti : " + response.getVertex().getVertexID());
 			}
 
-		} else {
-			if (ComputationModuleMLImpl.singlePath) {
-				SimplePathComputationAlgorithm algo = (SimplePathComputationAlgorithm) request.getAlgo();
-				SimplePathComputationConstraint constr = (SimplePathComputationConstraint) request.getConstrains();
+		}
+		// Single Path Scenario
+		if (ComputationModuleMLImpl.singlePath) {
+			SimplePathComputationAlgorithm algo = (SimplePathComputationAlgorithm) request.getAlgo();
+			SimplePathComputationConstraint constr = (SimplePathComputationConstraint) request.getConstrains();
+			cout("ssource - " + constr.getSource().getVertexID());
+			cout("sdestination - " + constr.getDestination().getVertexID());
+			ClientTest.enterTheComputation.add(System.nanoTime());
+			PathElement element = algo.computePath(graph, constr);
+			ClientTest.leaveTheComputation.add(System.nanoTime());
+			ArrayList<PathElement> elements = new ArrayList<PathElement>();
 
-				ClientTest.enterTheComputation.add(System.nanoTime());
-				PathElement element = algo.computePath(graph, constr);
-				ClientTest.leaveTheComputation.add(System.nanoTime());
-				ArrayList<PathElement> elements = new ArrayList<PathElement>();
-
-				if (element != null && element.getPathParams().getAvailableCapacity() >= constr.getBw()) {
-					elements.add(element);
-					response.setPathElements(elements);
-				}
-			} else {
-				// Compute path
-				MultiPathComputationAlgorithm malgo = request.getMAlgo();
-				MultiPathConstraint mc = request.getMConstraints();
-
-				// set begin of path computation time stamp before computePath()
-				// and
-				// end of path computation time stamp after computePath()
-				ClientTest.enterTheComputation.add(System.nanoTime());
-				ArrayList<PathElement> elements = malgo.computePath(graph, mc);
-				ClientTest.leaveTheComputation.add(System.nanoTime());
-
-				if (elements != null) {
-					response.setPathElements(elements);
-					String loggerString = "computed paths are: \n ";
-					for (int i = 0; i < elements.size(); i++)
-						loggerString += "                        Path[" + i + "] : " + elements.get(i).getVertexSequence() + " \n";
-					localLogger(loggerString);
-				} else
-					localDebugger("Error in Computing Path from " + request.getMConstraints().getSource().getVertexID() + " to " + request.getMConstraints().getDestination().getVertexID());
+			if (element != null && element.getPathParams().getAvailableCapacity() >= constr.getBw()) {
+				element.getPathParams().setReserve(constr.getBw());
+				elements.add(element);
+				response.setPathElements(elements);
 			}
+		} else {
+			// Multiple Path Scenario
+			MultiPathComputationAlgorithm malgo = request.getMAlgo();
+			MultiPathConstraint mc = request.getMConstraints();
+			cout("msource - " + mc.getSource().getVertexID());
+			cout("mdestination - " + mc.getDestination().getVertexID());
+			// set begin of path computation time stamp before computePath()
+			// and
+			// end of path computation time stamp after computePath()
+			ClientTest.enterTheComputation.add(System.nanoTime());
+			ArrayList<PathElement> elements = malgo.computePath(graph, mc);
+			ClientTest.leaveTheComputation.add(System.nanoTime());
+
+			if (elements != null) {
+				response.setPathElements(elements);
+				String loggerString = "computed paths are: \n ";
+				for (int i = 0; i < elements.size(); i++)
+					loggerString += "                        Path[" + i + "] : " + elements.get(i).getVertexSequence() + " \n";
+				localLogger(loggerString);
+			} else
+				localDebugger("Error in Computing Path from " + request.getMConstraints().getSource().getVertexID() + " to " + request.getMConstraints().getDestination().getVertexID());
 		}
 
 		return response;
@@ -151,50 +161,32 @@ public class WorkerTaskForMultiPathWithITResourceSupport implements Runnable {
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", requestID);
 		PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.generatePathComputationRequestFrame(RP);
 
-		if (resp.isVertexRequest()) {
-			if (resp.getVertex() == null) {
-				PCEPNoVertexObject noVertex = PCEPObjectFrameFactory.generatePCEPNoVertexObject("1", "0", 1, "0");
-				responseFrame.insertNoVertexObject(noVertex);
-			} else {
-				System.out.println("Vertex Found ");
-				VertexElement element = resp.getVertex();
-				System.out.println("resp.getVertex() = " + resp.getVertex().getVertexID());
-				ArrayList<EROSubobjects> vertexList = new ArrayList<EROSubobjects>();
-				vertexList.add(new PCEPAddress(element.getVertexID(), false));
-				PCEPExplicitRouteObject ERO = PCEPObjectFrameFactory.generatePCEPExplicitRouteObject("1", "0", vertexList);
-				responseFrame.insertExplicitRouteObject(ERO);
-			}
+		if (resp.getPathElements() == null) {
+			// return no path object in PCEP Response Message
+			PCEPNoPathObject noPath = PCEPObjectFrameFactory.generatePCEPNoPathObject("1", "0", 1, "0");
+			responseFrame.insertNoPathObject(noPath);
+			cout("No Path Could Be Found!");
 		} else {
-			if (resp.getPathElements() == null) {
-				// return no path object in PCEP Response Message
-				PCEPNoPathObject noPath = PCEPObjectFrameFactory.generatePCEPNoPathObject("1", "0", 1, "0");
-				responseFrame.insertNoPathObject(noPath);
+			ArrayList<ArrayList<PCEPAddress>> vertexLists = getTraversedVertexes(resp);
 
-			} else {
-				ArrayList<ArrayList<PCEPAddress>> vertexLists = getTraversedVertexes(resp);
+			for (int j = 0; j < vertexLists.size(); j++) {
+				ArrayList<PCEPAddress> vertexList = vertexLists.get(j);
 
-				for (int j = 0; j < vertexLists.size(); j++) {
-					ArrayList<PCEPAddress> vertexList = vertexLists.get(j);
+				ArrayList<EROSubobjects> newVertexList = new ArrayList<EROSubobjects>();
 
-					ArrayList<EROSubobjects> newVertexList = new ArrayList<EROSubobjects>();
-
-					for (int i = 0; i < vertexList.size(); i++) {
-						newVertexList.add(vertexList.get(i));
-					}
-
-					PCEPExplicitRouteObject ERO = PCEPObjectFrameFactory.generatePCEPExplicitRouteObject("1", "0", newVertexList);
-					responseFrame.insertExplicitRouteObject(ERO);
+				for (int i = 0; i < vertexList.size(); i++) {
+					newVertexList.add(vertexList.get(i));
 				}
 
-				try {
-					ResultLogger.logResult(PCEPMessageFactory.generateMessage(responseFrame));// FIXME
-					// remove
-					// after
-					// test
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				PCEPExplicitRouteObject ERO = PCEPObjectFrameFactory.generatePCEPExplicitRouteObject("1", "0", newVertexList);
+				PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float)resp.getPathElements().get(j).getPathParams().getReserve());
+				
+				responseFrame.insertExplicitRouteObject(ERO);
+				responseFrame.insertBandwidthObject(bw);
 			}
+			
+
+			cout(vertexLists.size() + " Paths have been found!");
 		}
 		PCEPMessage message = PCEPMessageFactory.generateMessage(responseFrame);
 		message.setAddress(resp.getAddress());
@@ -241,6 +233,10 @@ public class WorkerTaskForMultiPathWithITResourceSupport implements Runnable {
 	 */
 	private void localDebugger(String event) {
 		Logger.debugger("[WorkerTask]     " + event);
+	}
+
+	private void cout(String coutString) {
+//		GuiLauncher.debug("WorkerTaskForMultiPathITResource.java : " + coutString);
 	}
 
 }

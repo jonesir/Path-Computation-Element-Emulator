@@ -48,15 +48,6 @@ public class PCEPRequestFrameFactory {
 		return requestFrame;
 	}
 
-	/**
-	 * added for PCEPITResourceObject
-	 */
-	public static PCEPRequestFrame generateITResourceRequestFrame(PCEPRequestParametersObject RP, PCEPITResourceObject itResource) {
-		PCEPRequestFrame requestFrame = new PCEPRequestFrame(RP, itResource);
-
-		return requestFrame;
-	}
-
 	public static PCEPRequestFrame generateGeneralizedEndPointsTNARequestFrame(PCEPRequestParametersObject RP, PCEPGeneralizedEndPointsTNAObject generalizedEndPointsTNAObject) {
 		PCEPRequestFrame requestFrame = new PCEPRequestFrame(RP, generalizedEndPointsTNAObject);
 
@@ -145,7 +136,6 @@ public class PCEPRequestFrameFactory {
 				break;
 			}
 
-				/* added for PCEPITResourceObject */
 			case 16: {
 				itResource = (PCEPITResourceObject) objectFrame;
 			}
@@ -162,10 +152,7 @@ public class PCEPRequestFrameFactory {
 
 		/* added for PCEPITResourceObject */
 		if (itResource != null) {
-			requestFrame = new PCEPRequestFrame(RP, itResource);
-		}
-		if (endPoints != null) {
-			requestFrame = new PCEPRequestFrame(RP, endPoints);
+			requestFrame.insertITResourceObject(itResource);
 		}
 		if (SVECList != null) {
 			requestFrame.insertSynchronizationVectorObjectList(SVECList);

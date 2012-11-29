@@ -34,6 +34,7 @@ import com.graph.path.algorithms.constraints.MultiPathConstraint;
 import com.graph.path.algorithms.constraints.impl.SimplePathComputationConstraint;
 import com.graph.path.algorithms.constraints.multipath.impl.SimpleMultiPathComputationConstraint;
 import com.graph.path.algorithms.impl.MaxBandwidthShortestPathComputationAlgorithm;
+import com.graph.path.algorithms.multipath.kdisjoint.impl.ShortestKDisjointMultiPathComputationAlgorithm;
 import com.graph.path.pathelementimpl.PathElementImpl;
 import com.graph.resv.ResvElement;
 import com.graph.topology.importers.ImportTopology;
@@ -262,20 +263,13 @@ public class SimpleMultiPathComputationAlgorithm implements
 		Gcontroller graph = new GcontrollerImpl();
 		ImportTopology importTopology = new MLSNDLibImportTopology();
 		importTopology.importTopology(graph, ".//germany50.txt");
-		Random random = new Random();
-		int src,dest;
-		int j = 0;
-		int loopCount = 0;
-		while (j<=loopCount) {
-			src = random.nextInt(50)+1;
-			dest = random.nextInt(50)+1;
-			while(dest == src){
-				dest = random.nextInt(51);
-			}
-			src = 24;
-			dest = 8;
-			
-			j++;
+		SimpleMultiPathComputationAlgorithm algo = new SimpleMultiPathComputationAlgorithm();
+		MultiPathConstraint constr = new SimpleMultiPathComputationConstraint(graph.getVertex("192.169.2.3"), graph.getVertex("192.169.2.9"), 3, 70);
+		
+		ArrayList<PathElement> paths = algo.computePath(graph, constr);
+		for (int i=0;i<paths.size();i++){
+			System.out.println(paths.get(i).getVertexSequence());
+			System.out.println(paths.get(i).getPathParams().getReserve());
 		}
 	}
 

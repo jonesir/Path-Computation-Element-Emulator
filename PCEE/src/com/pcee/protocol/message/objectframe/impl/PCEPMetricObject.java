@@ -38,7 +38,7 @@ public class PCEPMetricObject implements PCEPObjectFrame {
 	private final String NAME = "Metric";
 
 	private String reserved;
-	private String type;
+	private String type;//1 = path, 2 = delay
 	private String metricValue;
 	private String flags;
 
@@ -260,6 +260,9 @@ public class PCEPMetricObject implements PCEPObjectFrame {
 		return this.metricValue + "";
 	}
 
+	public float getMetricValueDecimal(){
+		return Float.intBitsToFloat(Integer.valueOf(this.metricValue,2)); 
+	}
 	/**
 	 * @param binaryString
 	 */
@@ -425,10 +428,13 @@ public class PCEPMetricObject implements PCEPObjectFrame {
 		object.setMetricValueBinaryString(Integer.toBinaryString(Float.floatToIntBits((float) 245.9)));
 		String value = Integer.toBinaryString(Float.floatToIntBits(245.9f));
 		Integer.valueOf(value, 2);
-		System.out.println("length: " + Integer.toBinaryString(Float.floatToIntBits(245.9f)).length());
+		
+		System.out.println("length: " + Float.floatToIntBits(245.9f));
+		System.out.println("length: " + Integer.toBinaryString(Float.floatToIntBits(245.9f)));
 		System.out.println("float value : " + Integer.toBinaryString(Float.floatToIntBits(245.9f)));
 		System.out.println("Binary presentation of metric value: " + Integer.valueOf(object.metricValue, 2));
 		System.out.println("value of value after : " + Integer.valueOf(value, 2));
+		System.out.println("actual value: " + Float.intBitsToFloat(Integer.valueOf(object.metricValue,2)));
 	}
 
 }

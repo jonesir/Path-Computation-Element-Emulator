@@ -23,6 +23,7 @@ import com.graph.graphcontroller.Gcontroller;
 import com.pcee.architecture.ModuleManagement;
 import com.pcee.architecture.computationmodule.ted.TopologyInformation;
 import com.pcee.client.ClientTest;
+import com.pcee.client.GuiLauncher;
 import com.pcee.logger.Logger;
 
 public class Worker extends Thread {
@@ -89,8 +90,7 @@ public class Worker extends Thread {
 			//Flag to check if thread was interrupted during a wait operation or during a computation 
 			flag=1;
 			if (request!=null){
-//				task = new WorkerTaskForMultipath(lm, request, TopologyInformation.getInstance().getGraph().createCopy());
-				task = new WorkerTaskForMultiPathWithITResourceSupport(lm, request, TopologyInformation.getInstance().getGraph().createCopy());
+				task = new WorkerTaskForMultiPathWithITResourceSupport(lm, request, TopologyInformation.getInstance().getGraph());
 				task.run();
 				localLogger("Completed processing of request ID " + request.getRequestID());
 			}
@@ -125,5 +125,9 @@ public class Worker extends Thread {
 	 */
 	private void localDebugger(String event) {
 		Logger.debugger("[Worker "+ ID +"]     " + event);
+	}
+	
+	private void cout(String coutString){
+		GuiLauncher.debug("Worker.java : " + coutString);
 	}
 }
