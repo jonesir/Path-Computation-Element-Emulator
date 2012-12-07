@@ -37,6 +37,10 @@ public class VertexElement implements Comparable<VertexElement> {
 
 	/**coordinates for the vertex*/
 	private double xCoord, yCoord;
+	
+	private boolean isBorderNode = false;
+	
+	private boolean isITNode = false;
 
 	/**Pointer to the Graph Controller associated with the vertex*/
 	protected Gcontroller graph;
@@ -197,10 +201,28 @@ public class VertexElement implements Comparable<VertexElement> {
 		return 1;
 	}
 
+	public void setIsBorderNode(boolean isBorderNode){
+	    this.isBorderNode = isBorderNode;
+	}
+	
+	public boolean isBorderNode(){
+	    return this.isBorderNode;
+	}
+	
+	public void setIsITNode(boolean isITNode){
+		this.isITNode = isITNode;
+	}
+	
+	public boolean isITNode(){
+		return this.isITNode;
+	}
+
 	public VertexParams getVertexParams(){
 		return params;
 	}
 
+	
+	
 	public void setVertexParams(VertexParams params){
 		this.params = params;
 	}
@@ -208,13 +230,14 @@ public class VertexElement implements Comparable<VertexElement> {
 	/**Function to copt the vertex Element into a new graph*/
 	public VertexElement copyVertexElement (Gcontroller newGraph){
 		VertexElement element = new VertexElement (vertexID, newGraph, xCoord, yCoord);
+		element.setIsBorderNode(isBorderNode);
+		element.setIsITNode(isITNode);
 		VertexParams params = null;
 		if (this.getVertexParams()!=null)
 			params = this.getVertexParams().copyVertexParams(element);
 		element.setVertexParams(params);
 		return element;
 	}
-
 	
 	/**Flush the set of edges that should be excluded in the getConnectedEdges() function*/
 	public void flushExcludedEdges(){

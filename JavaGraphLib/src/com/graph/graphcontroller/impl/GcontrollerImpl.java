@@ -34,6 +34,8 @@ public class GcontrollerImpl implements Gcontroller{
 	/**JDSL Graph Implementation*/
 	protected JDSLGraphImpl graph;
 
+	private ArrayList<VertexElement> borderNodes;
+	
 	public GcontrollerImpl(){
 		graph= new JDSLGraphImpl();
 	}
@@ -107,6 +109,8 @@ public class GcontrollerImpl implements Gcontroller{
 	public void addVertex(VertexElement vertex) {
 		if (this.vertexExists(vertex)==false){
 			this.graph.addVertex(vertex);
+			if(vertex.isBorderNode())
+			    this.borderNodes.add(vertex);
 		}
 		else
 			GraphLogger.logMsg("Vertex already exists", classIdentifier);
@@ -165,6 +169,10 @@ public class GcontrollerImpl implements Gcontroller{
 	public ArrayList<EdgeElement> allConnectingEdges(VertexElement vertexID1,
 			VertexElement vertexID2) {
 		return graph.allConnectingEdges(vertexID1.getVertexID(), vertexID2.getVertexID());
+	}
+	
+	public ArrayList<VertexElement> getBorderNodeVertexElements(){
+	    return this.borderNodes;
 	}
 
 }
