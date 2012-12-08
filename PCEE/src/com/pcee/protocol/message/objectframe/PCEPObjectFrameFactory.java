@@ -195,6 +195,12 @@ public class PCEPObjectFrameFactory {
 		return object;
 	}
 	
+	public static PCEPITResourceObject generatePCEPITResourceObject(String pFlag, String iFlag, int reserved, int cpu, int ram, int storage) {
+		PCEPCommonObjectHeader objectHeader = new PCEPCommonObjectHeader(16, 1, pFlag, iFlag);
+		PCEPITResourceObject object = new PCEPITResourceObject(objectHeader, reserved, cpu, ram, storage);
+		return object;
+	}
+	
 	public static PCEPObjectiveFunctionObject generatePCEPObjectiveFunctionObject(String pFlag, String iFlag, int ofCode) {
 		PCEPCommonObjectHeader objectHeader = new PCEPCommonObjectHeader(21, 1,
 				pFlag, iFlag);
@@ -267,6 +273,8 @@ public class PCEPObjectFrameFactory {
 			return new PCEPLoadBalancingObject(objectHeader, objectString);
 		case 15:
 			return new PCEPCloseObject(objectHeader, objectString);
+		case 16:
+			return new PCEPITResourceObject(objectHeader, objectString);
 		case 21:
 			return new PCEPObjectiveFunctionObject(objectHeader, objectString);
 		default:

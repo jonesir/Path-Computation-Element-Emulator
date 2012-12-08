@@ -22,6 +22,7 @@ import com.pcee.protocol.message.PCEPMessageFrame;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLoadBalancingObject;
@@ -69,6 +70,7 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 	PCEPIncludeRouteObject IRO;
 	PCEPLoadBalancingObject loadBalancing;
 	PCEPObjectiveFunctionObject of;
+	PCEPITResourceObject it;
 
 	public PCEPRequestFrame(PCEPRequestParametersObject RP,
 			PCEPEndPointsObject endPoints) {
@@ -94,6 +96,17 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 		this.bandwidth = bandwidth;
 		this.metricList = new LinkedList<PCEPMetricObject>();
 		this.insertMetricObject(metric);
+	}
+	
+	public PCEPRequestFrame(PCEPRequestParametersObject RP,
+			PCEPEndPointsObject endPoints, PCEPBandwidthObject bandwidth,
+			PCEPMetricObject metric, PCEPITResourceObject it) {
+		this.RP = RP;
+		this.endPoints = endPoints;
+		this.bandwidth = bandwidth;
+		this.metricList = new LinkedList<PCEPMetricObject>();
+		this.insertMetricObject(metric);
+		this.it = it;
 	}
 
 	public int getRequestID() {
@@ -167,6 +180,10 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 	public void insertLoadBalancingObject(PCEPLoadBalancingObject loadBalancing) {
 		this.loadBalancing = loadBalancing;
 	}
+	
+	public void insertITResourceObject(PCEPITResourceObject it) {
+		this.it = it;
+	}
 
 	// EXTRACT METHODS
 
@@ -232,6 +249,12 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 		return null;
 	}
 
+	public PCEPITResourceObject extractITResourceObject() {
+		if (containsITResourceObject()) {
+			return it;
+		}
+		return null;
+	}
 
 	// CONTAINS METHODS
 
@@ -297,6 +320,12 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 		return true;
 	}
 
+	public boolean containsITResourceObject() {
+		if (it == null) {
+			return false;
+		}
+		return true;
+	}
 
 	// INTERFACE METHODS
 
@@ -336,6 +365,10 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 		
 		if (containsObjectiveFunctionObject()){
 			length += of.getObjectFrameByteLength();
+		}
+		
+		if (containsITResourceObject()) {
+			length += it.getObjectFrameByteLength();
 		}
 		
 		return length;
@@ -381,6 +414,10 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 			objectsString.append(of.getObjectFrameBinaryString());
 		}
 		
+		if (containsITResourceObject()) {
+			objectsString.append(it.getObjectFrameBinaryString());
+		}
+		
 		return objectsString.toString();
 	}
 
@@ -422,6 +459,10 @@ public class PCEPRequestFrame implements PCEPMessageFrame {
 
 		if (containsObjectiveFunctionObject()) {
 			requestObjects.add(of);
+		}
+		
+		if (containsITResourceObject()) {
+			requestObjects.add(it);
 		}
 		
 		return requestObjects;

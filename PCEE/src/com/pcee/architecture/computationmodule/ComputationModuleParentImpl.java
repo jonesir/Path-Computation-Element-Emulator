@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.graph.elements.vertex.algorithms.VertexAlgorithm;
+import com.graph.elements.vertex.algorithms.constraints.VertexConstraint;
+import com.graph.elements.vertex.algorithms.constraints.impl.SingleVertexConstraint;
+import com.graph.elements.vertex.algorithms.impl.SingleVertexAlgorithmImpl;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.path.algorithms.constraints.impl.SimplePathComputationConstraint;
 import com.graph.path.algorithms.impl.BandwidthConstrainedPathComputationAlgorithm;
@@ -38,6 +42,7 @@ import com.pcee.protocol.message.PCEPMessage;
 import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPNoPathObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.EROSubobjects;
@@ -219,6 +224,9 @@ public class ComputationModuleParentImpl extends ComputationModule {
 	private void computeRequest(PCEPMessage message) {
 		localDebugger("Entering: computeRequest(PCEPMessage message)");
 		try {
+			
+			Request req = new MultiDomainRequest();
+			
 			// Extract Request Frame from the incoming message
 			PCEPRequestFrame requestFrame = PCEPRequestFrameFactory
 					.getPathComputationRequestFrame(message);
@@ -234,7 +242,28 @@ public class ComputationModuleParentImpl extends ComputationModule {
 			if (requestFrame.containsBandwidthObject()) {
 				bandwidth = requestFrame.extractBandwidthObject().getBandwidthFloatValue();
 			}
-			Request req = new MultiDomainRequest();
+			
+			PCEPITResourceObject it = null;
+			if (requestFrame.containsITResourceObject()) {
+				it = requestFrame.extractITResourceObject();
+			}
+			
+			// Check if IT resource parameters included, if yes, it is an IT request
+			// provide the request with IT constraints and algorithm
+			if (it !=null ){
+				req.setITRequest(true);
+				// Creating VertexConstraint for IT searching request
+				VertexConstraint vConstraints = new SingleVertexConstraint();
+				vConstraints.setCPU(it.getCpuDecimalValue());
+				vConstraints.setRAM(it.getRamDecimalValue());
+				vConstraints.setSTORAGE(it.getStorageDecimalValue());
+				req.setVConstraints(vConstraints);
+				
+				// Creating VertexAlgorithm for IT searching request
+				VertexAlgorithm vAlgo = new SingleVertexAlgorithmImpl();
+				req.setVAlgorithm(vAlgo);
+			}
+			
 			req.setRequestID(requestID);
 			req.setAddress(address);
 

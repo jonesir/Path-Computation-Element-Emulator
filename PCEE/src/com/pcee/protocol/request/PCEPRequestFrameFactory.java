@@ -25,6 +25,7 @@ import com.pcee.protocol.message.objectframe.PCEPCommonObjectHeader;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLoadBalancingObject;
@@ -60,7 +61,8 @@ public class PCEPRequestFrameFactory {
 		PCEPReportedRouteObject RRO = null;
 		PCEPIncludeRouteObject IRO = null;
 		PCEPLoadBalancingObject loadBalancing = null;
-//		PCEPGeneralizedEndPointsTNAObject generalizedEndPointTNA = null;
+		PCEPITResourceObject it = null;
+		
 		LinkedList<PCEPObjectFrame> objectList = message.getObjectsList();
 
 		for (int i = 0; i < objectList.size(); i++) {
@@ -88,7 +90,6 @@ public class PCEPRequestFrameFactory {
 				break;
 			}
 			case 4: {
-				//generalizedEndPointTNA = (PCEPGeneralizedEndPointsTNAObject) objectFrame;
 				endPoints = (PCEPEndPointsObject) objectFrame;
 				break;
 			}
@@ -129,7 +130,11 @@ public class PCEPRequestFrameFactory {
 				loadBalancing = (PCEPLoadBalancingObject) objectFrame;
 				break;
 			}
-
+			
+			case 16: {
+				it = (PCEPITResourceObject) objectFrame;
+				break;
+			}
 			
 			default: {
 				break;
@@ -167,10 +172,9 @@ public class PCEPRequestFrameFactory {
 		if (loadBalancing != null) {
 			requestFrame.insertLoadBalancingObject(loadBalancing);
 		}
-
-		//if(generalizedEndPointTNA!=null){
-			//requestFrame = new PCEPRequestFrame(RP,generalizedEndPointTNA);
-	//	}
+		if (it != null) {
+			requestFrame.insertITResourceObject(it);
+		}
 		
 		return requestFrame;
 	}
@@ -179,6 +183,16 @@ public class PCEPRequestFrameFactory {
 			PCEPRequestParametersObject RP, PCEPEndPointsObject endPoints,
 			PCEPBandwidthObject bandwidth, PCEPMetricObject metric) {
 		PCEPRequestFrame requestFrame = new PCEPRequestFrame(RP,endPoints,bandwidth,metric);
+		return requestFrame;
+	}
+	
+	public static PCEPRequestFrame generateITResourceRequestFrame(
+			PCEPRequestParametersObject RP, PCEPEndPointsObject endPoints,
+			PCEPBandwidthObject bandwidth, PCEPMetricObject metric,
+			PCEPITResourceObject it
+			) {
+		
+		PCEPRequestFrame requestFrame = new PCEPRequestFrame(RP,endPoints,bandwidth,metric,it);
 		return requestFrame;
 	}
 

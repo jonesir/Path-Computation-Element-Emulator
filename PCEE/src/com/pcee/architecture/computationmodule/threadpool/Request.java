@@ -1,5 +1,7 @@
 package com.pcee.architecture.computationmodule.threadpool;
 
+import com.graph.elements.vertex.algorithms.VertexAlgorithm;
+import com.graph.elements.vertex.algorithms.constraints.VertexConstraint;
 import com.graph.path.algorithms.PathComputationAlgorithm;
 import com.graph.path.algorithms.constraints.Constraint;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
@@ -16,7 +18,13 @@ public class Request {
     
     // Algorithm used for the path computation request
     private PathComputationAlgorithm algo;
+    
+    // Constraints for the IT node searching request
+    private VertexConstraint vConstraints;
 
+    // Algorithm used for the IT searching request
+    private VertexAlgorithm vAlgo;
+    
 	//Source Router IP address
     private String sourceRouterIP;
     
@@ -25,6 +33,8 @@ public class Request {
     
     //Bandwidth requested
     private double bandwidth;
+    
+    private boolean isITRequest = false;
     
     public double getBandwidth() {
 		return bandwidth;
@@ -109,6 +119,39 @@ public class Request {
     public void setAlgo(PathComputationAlgorithm algo) {
 	this.algo = algo;
     }
+    
+    /**
+     * @param vConstaints
+     */
+    public void setVConstraints(VertexConstraint vConstraints) {
+    	this.vConstraints = vConstraints;
+    }
+    
+    /**
+     * @return
+     */
+    public VertexConstraint getVConstraints() {
+    	return this.vConstraints;
+    }
+    
+    /**
+     * @param vAlgo
+     */
+    public void setVAlgorithm(VertexAlgorithm vAlgo) {
+    	this.vAlgo = vAlgo;
+    }
+    
+    public VertexAlgorithm getVAlgorithm() {
+    	return this.vAlgo;
+    }
+    
 
+    public void setITRequest(boolean isITRequest) {
+    	this.isITRequest = isITRequest;
+    }
+    
+    public boolean isITRequest() {
+    	return this.isITRequest;
+    }
 
 }

@@ -66,4 +66,8 @@ public class SimplePathComputationConstraint extends Constraint{
 		return this.bw;
 	}
 	
+	/**Set destination in case of IT request*/
+	public void setDestination(VertexElement destination){
+		this.destination = destination;
+	}
 }

@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.graph.elements.vertex.algorithms.VertexAlgorithm;
+import com.graph.elements.vertex.algorithms.constraints.VertexConstraint;
+import com.graph.elements.vertex.algorithms.constraints.impl.SingleVertexConstraint;
+import com.graph.elements.vertex.algorithms.impl.SingleVertexAlgorithmImpl;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.path.algorithms.constraints.impl.SimplePathComputationConstraint;
 import com.graph.path.algorithms.impl.BandwidthConstrainedPathComputationAlgorithm;
@@ -37,6 +41,7 @@ import com.pcee.protocol.message.PCEPMessage;
 import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPNoPathObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.EROSubobjects;
@@ -221,6 +226,7 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 	private void computeRequest(PCEPMessage message) {
 		localDebugger("Entering: computeRequest(PCEPMessage message)");
 		try {
+			
 			// Extract Request Frame from the incoming message
 			PCEPRequestFrame requestFrame = PCEPRequestFrameFactory
 					.getPathComputationRequestFrame(message);
@@ -236,6 +242,7 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 			if (requestFrame.containsBandwidthObject()) {
 				bandwidth = requestFrame.extractBandwidthObject().getBandwidthFloatValue();
 			}
+			
 			//Check if both source and destination are in the same domain 
 			if (graph.vertexExists(source) && graph.vertexExists(destination)) {
 				// Creating new request to be assigned to the Thread Pool
@@ -246,6 +253,27 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 				//Set the source and destination IP addresses
 				req.setSourceRouterIP(source.trim());
 				req.setDestRouterIP(destination.trim());
+				
+				PCEPITResourceObject it = null;
+				if (requestFrame.containsITResourceObject()) {
+					it = requestFrame.extractITResourceObject();
+				}
+				
+				// Check if IT resource parameters included, if yes, it is an IT request
+				// provide the request with IT constraints and algorithm
+				if (it !=null ){
+					req.setITRequest(true);
+					// Creating VertexConstraint for IT searching request
+					VertexConstraint vConstraints = new SingleVertexConstraint();
+					vConstraints.setCPU(it.getCpuDecimalValue());
+					vConstraints.setRAM(it.getRamDecimalValue());
+					vConstraints.setSTORAGE(it.getStorageDecimalValue());
+					req.setVConstraints(vConstraints);
+					
+					// Creating VertexAlgorithm for IT searching request
+					VertexAlgorithm vAlgo = new SingleVertexAlgorithmImpl();
+					req.setVAlgorithm(vAlgo);
+				}
 
 
 				//check if bandwidth constraint is supplied and in that case use a different path computation algorithm				
@@ -277,6 +305,26 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 					req.setBandwidth(bandwidth);
 					req.setAlgo(new BandwidthConstrainedPathComputationAlgorithm());
 				}
+				
+				PCEPITResourceObject it = null;
+				if (requestFrame.containsITResourceObject()) {
+					it = requestFrame.extractITResourceObject();
+				}
+				
+				if (it !=null ){
+					req.setITRequest(true);
+					// Creating VertexConstraint for IT searching request
+					VertexConstraint vConstraints = new SingleVertexConstraint();
+					vConstraints.setCPU(it.getCpuDecimalValue());
+					vConstraints.setRAM(it.getRamDecimalValue());
+					vConstraints.setSTORAGE(it.getStorageDecimalValue());
+					req.setVConstraints(vConstraints);
+					
+					// Creating VertexAlgorithm for IT searching request
+					VertexAlgorithm vAlgo = new SingleVertexAlgorithmImpl();
+					req.setVAlgorithm(vAlgo);
+				}
+				
 				localLogger("Adding Request for multi-domain path computation with ID " + requestID + " to the Queue");
 				requestQueue.add(req);
 

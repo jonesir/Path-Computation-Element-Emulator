@@ -46,6 +46,7 @@ import com.graph.path.algorithms.constraints.impl.SimplePathComputationConstrain
 import com.graph.path.algorithms.impl.MaxBandwidthShortestPathComputationAlgorithm;
 import com.graph.topology.importers.ImportTopology;
 import com.graph.topology.importers.impl.BRITEImportTopology;
+import com.graph.topology.importers.impl.MLSNDLibImportTopology;
 import com.graph.topology.importers.impl.SNDLibImportTopology;
 import com.pcee.architecture.computationmodule.ted.client.TopologyUpdateParentClient;
 import com.pcee.logger.Logger;
@@ -176,7 +177,8 @@ public class TopologyInformationDomain {
 	/** default constructor */
 	private TopologyInformationDomain() {
 
-		topology = new SNDLibImportTopology();
+		//topology = new SNDLibImportTopology();
+		topology = new MLSNDLibImportTopology();
 		graph = new GcontrollerImpl();
 
 		// Source file used to instantiate the topology

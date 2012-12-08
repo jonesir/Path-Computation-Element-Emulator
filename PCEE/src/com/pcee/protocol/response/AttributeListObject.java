@@ -21,6 +21,7 @@ import java.util.LinkedList;
 
 import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
+import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPMetricObject;
@@ -31,23 +32,50 @@ public class AttributeListObject {
 	PCEPBandwidthObject bandwidth;
 	LinkedList<PCEPMetricObject> metricList;
 	PCEPIncludeRouteObject IRO;
+	PCEPITResourceObject it;
 
+	//Insert Methods
+	
+	/**
+	 * @param LSPA
+	 */
 	public void insertLabelSwitchedPathAttributesObject(PCEPLabelSwitchedPathAttributesObject LSPA) {
 		this.LSPA = LSPA;
 	}
 
+	/**
+	 * @param bandwidth
+	 */
 	public void insertBandwidthObject(PCEPBandwidthObject bandwidth) {
 		this.bandwidth = bandwidth;
 	}
 
+	/**
+	 * @param metricList
+	 */
 	public void insertMetricObjectList(LinkedList<PCEPMetricObject> metricList) {
 		this.metricList = metricList;
 	}
 
+	/**
+	 * @param IRO
+	 */
 	public void insertIncludeRouteObject(PCEPIncludeRouteObject IRO) {
 		this.IRO = IRO;
 	}
+	
+	/**
+	 * @param it
+	 */
+	public void insertITResourceObject(PCEPITResourceObject it){
+		this.it = it;
+	}
 
+	// Contains Methods
+	
+	/**
+	 * @return
+	 */
 	public boolean containsLabelSwitchedPathAttributesObject() {
 		if (LSPA == null) {
 			return false;
@@ -55,6 +83,9 @@ public class AttributeListObject {
 		return true;
 	}
 
+	/**
+	 * @return
+	 */
 	public boolean containsBandwidthObject() {
 		if (bandwidth == null) {
 			return false;
@@ -62,6 +93,9 @@ public class AttributeListObject {
 		return true;
 	}
 
+	/**
+	 * @return
+	 */
 	public boolean containsMetricObjectList() {
 		if (metricList == null) {
 			return false;
@@ -69,13 +103,30 @@ public class AttributeListObject {
 		return true;
 	}
 
+	/**
+	 * @return
+	 */
 	public boolean containsIncludeRouteObject() {
 		if (IRO == null) {
 			return false;
 		}
 		return true;
 	}
+	
+	/**
+	 * @return
+	 */
+	public boolean containsITResourceObject(){
+		if(it == null){
+			return false;
+		}
+		return true;
+	}
 
+	
+	/**
+	 * @return LinkedList of PCEPObjectFrame
+	 */
 	public LinkedList<PCEPObjectFrame> getObjectFrameList() {
 
 		LinkedList<PCEPObjectFrame> objectsLinkedList = new LinkedList<PCEPObjectFrame>();
@@ -94,10 +145,17 @@ public class AttributeListObject {
 		if (IRO != null) {
 			objectsLinkedList.add(IRO);
 		}
+		
+		if (it != null){
+			objectsLinkedList.add(it);
+		}
 
 		return objectsLinkedList;
 	}
 
+	/**
+	 * @return total byte length of object frame list
+	 */
 	public int getByteLength() {
 		int length = 0;
 
@@ -115,10 +173,17 @@ public class AttributeListObject {
 		if (IRO != null) {
 			length += IRO.getObjectFrameByteLength();
 		}
+		
+		if (it != null) {
+			length += it.getObjectFrameByteLength();
+		}
 
 		return length;
 	}
 
+	/**
+	 * @return binary string of the list of object frames
+	 */
 	public String getBinaryString() {
 
 		StringBuffer objectsString = new StringBuffer();
@@ -136,6 +201,10 @@ public class AttributeListObject {
 		}
 		if (IRO != null) {
 			objectsString.append(IRO.getObjectFrameBinaryString());
+		}
+		
+		if (it != null) {
+			objectsString.append(it.getObjectFrameBinaryString());
 		}
 
 		return objectsString.toString();

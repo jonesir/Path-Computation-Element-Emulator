@@ -167,10 +167,10 @@ public class MLSNDLibImportTopology extends ImportTopology {
 
 	public static void main(String[] args) {
 		Gcontroller graph = new GcontrollerImpl();
-		String base = ".//germany50.txt";
+		String base = ".//atlantaDomain1.txt";
 		ImportTopology importer = new MLSNDLibImportTopology();
 		importer.importTopology(graph, base);
-		System.out.println("border node size is " + graph.getBorderNodeVertexElements().size());
+		//System.out.println("border node size is " + graph.getBorderNodeVertexElements().size());
 		for (VertexElement border : graph.getVertexSet()) {
 			if (border.isITNode())
 				System.out.println(border.getVertexID() + " is an IT node");

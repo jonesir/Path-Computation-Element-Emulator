@@ -75,21 +75,34 @@ public class WorkerTaskParent extends WorkerTask {
 		this.graph = graph;
 	}
 
-
-
 	/**
-	 * Function to process the path computation request 
+	 * Function to process the path computation request
 	 */
 	public void processRequest() {
-		//Check if the destimation is a border node (i.e. is on the virtual graph)
+
+		// find an IT node in case of IT request and set the destination to the
+		// found IT node
+		if (request.isITRequest()) {
+			VertexElement itNode = request.getVAlgorithm().searchVertex(graph, request.getVConstraints());
+			if (itNode != null) {
+				request.getConstrains().setDestination(itNode);
+				request.setDestRouterIP(itNode.getVertexID());
+			} else {
+				returnNoPathMessage();
+			}
+		}
+
+		// Check if the destimation is a border node (i.e. is on the virtual
+		// graph)
 		if (graph.vertexExists(request.getDestRouterIP())) {
 			localLogger("Destination exists in the Parent Virtual Graph");
-			//Destination exists in the virtual graph
+			// Destination exists in the virtual graph
 			if (graph.vertexExists(request.getSourceRouterIP())) {
-				//Source also exists on the virtual graph
-				//Compute single end-to-end path and send it to the source domain
+				// Source also exists on the virtual graph
+				// Compute single end-to-end path and send it to the source
+				// domain
 				Constraint constr;
-				if (request.getBandwidth()>0){
+				if (request.getBandwidth() > 0) {
 					constr = new SimplePathComputationConstraint(graph.getVertex(request.getSourceRouterIP()), graph.getVertex(request.getDestRouterIP()), request.getBandwidth());
 				} else {
 					constr = new SimplePathComputationConstraint(graph.getVertex(request.getSourceRouterIP()), graph.getVertex(request.getDestRouterIP()));
@@ -97,79 +110,78 @@ public class WorkerTaskParent extends WorkerTask {
 
 				PathElement element = request.getAlgo().computePath(graph, constr);
 
-				//Initialize Response Message
+				// Initialize Response Message
 				PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", request.getRequestID());
 				PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.generatePathComputationResponseFrame(RP);
-				if (element !=null) {
-					//Path Found 
+				if (element != null) {
+					// Path Found
 					localLogger("Computed path is " + element.getVertexSequence());
 					// GENERATE ERO
 
-					//TODO FIX THIS
+					// TODO FIX THIS
 					ArrayList<PCEPAddress> vertexList = getTraversedVertexes(element.getTraversedVertices(), graph);
 					ArrayList<EROSubobjects> newVertexList = new ArrayList<EROSubobjects>();
 					for (int i = 0; i < vertexList.size(); i++) {
 						newVertexList.add(vertexList.get(i));
 					}
 
-
-					//Insert ERO into Response
+					// Insert ERO into Response
 					PCEPExplicitRouteObject ERO = PCEPObjectFrameFactory.generatePCEPExplicitRouteObject("1", "0", newVertexList);
 					responseFrame.insertExplicitRouteObject(ERO);
 
-
-
-					//Insert bandwidth Object if found in request
+					// Insert bandwidth Object if found in request
 					if (request.getBandwidth() > 0) {
 						PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) element.getPathParams().getAvailableCapacity());
-						//						bwList.add(bw);
+						// bwList.add(bw);
 						responseFrame.insertBandwidthObject(bw);
 					}
 
 					PCEPMessage message = PCEPMessageFactory.generateMessage(responseFrame);
 					message.setAddress(request.getAddress());
 
-					// Send response message from the computation layer to the session layer
+					// Send response message from the computation layer to the
+					// session layer
 					lm.getComputationModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
-				}	else {
-					//Return a no path object
+				} else {
+					// Return a no path object
 					returnNoPathMessage();
 				}
 
 			} else {
-				//Source does not exist in the virtual Topology 
-				//Get the border nodes for the source domain
+				// Source does not exist in the virtual Topology
+				// Get the border nodes for the source domain
 
 				String domainID = TopologyInformationParent.getInstance().getDomainID(request.getSourceRouterIP());
 
-				if (domainID==null) {
+				if (domainID == null) {
 					localLogger("Domain Mapping not found for source node : " + request.getSourceRouterIP());
 					returnNoPathMessage();
 				} else {
-					//Get the set of border nodes associated with the domain
+					// Get the set of border nodes associated with the domain
 					Set<String> bnIDs = TopologyInformationParent.getInstance().getBorderNodes(domainID);
-					if (bnIDs==null) {
+					if (bnIDs == null) {
 						localLogger("Border nodes not found for domain : " + domainID);
 						returnNoPathMessage();
 					} else {
 						Iterator<String> iter = bnIDs.iterator();
 						ArrayList<PCEPBandwidthObject> bwList = new ArrayList<PCEPBandwidthObject>();
 						ArrayList<PCEPExplicitRouteObject> eroList = new ArrayList<PCEPExplicitRouteObject>();
-						while(iter.hasNext()) {
-							//Compute a path to this destination 
+						while (iter.hasNext()) {
+							// Compute a path to this destination
 							String sourceID = iter.next();
 
 							if (graph.vertexExists(sourceID)) {
-								//compute a path from the destination to the Border node in the source domain
+								// compute a path from the destination to the
+								// Border node in the source domain
 								Constraint constr;
-								if (request.getBandwidth()>0){
+								if (request.getBandwidth() > 0) {
 									constr = new SimplePathComputationConstraint(graph.getVertex(sourceID), graph.getVertex(request.getDestRouterIP()), request.getBandwidth());
 								} else {
 									constr = new SimplePathComputationConstraint(graph.getVertex(sourceID), graph.getVertex(request.getDestRouterIP()));
 								}
 
 								PathElement element = request.getAlgo().computePath(graph, constr);
-								if (element !=null) {
+								if (element != null) {
 									localLogger("Computed path is " + element.getVertexSequence());
 									// return response
 									ArrayList<PCEPAddress> vertexList = getTraversedVertexes(element.getTraversedVertices(), graph);
@@ -192,25 +204,26 @@ public class WorkerTaskParent extends WorkerTask {
 							}
 
 						}
-						//Generate response frame
-						if (eroList.size()>0) {
-							//atleast one path was computed
+						// Generate response frame
+						if (eroList.size() > 0) {
+							// atleast one path was computed
 							PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", request.getRequestID());
 							PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.generatePathComputationResponseFrame(RP);
 							Iterator<PCEPExplicitRouteObject> eroIter = eroList.iterator();
-							while(eroIter.hasNext()) 
+							while (eroIter.hasNext())
 								responseFrame.insertExplicitRouteObject(eroIter.next());
-							
-							//Insert Bandwidth in response if found in request
-							if (request.getBandwidth()>0) {
+
+							// Insert Bandwidth in response if found in request
+							if (request.getBandwidth() > 0) {
 								Iterator<PCEPBandwidthObject> bwIter = bwList.iterator();
-								while(bwIter.hasNext()) {
+								while (bwIter.hasNext()) {
 									responseFrame.insertBandwidthObject(bwIter.next());
 								}
 							}
 							PCEPMessage message = PCEPMessageFactory.generateMessage(responseFrame);
 							message.setAddress(request.getAddress());
-							// Send response message from the computation layer to the session layer
+							// Send response message from the computation layer
+							// to the session layer
 							lm.getComputationModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
 						} else {
 							returnNoPathMessage();
@@ -220,25 +233,25 @@ public class WorkerTaskParent extends WorkerTask {
 
 			}
 
-
 		} else {
-			localLogger ("Destination Address not in Parent Virtual Topology ");
+			localLogger("Destination Address not in Parent Virtual Topology ");
 
-			//get the domain ID of the domain in which the destination IP exists
+			// get the domain ID of the domain in which the destination IP
+			// exists
 			String domainID = TopologyInformationParent.getInstance().getDomainID(request.getDestRouterIP());
-			if (domainID==null) {
-				//Invalid destination 
+			if (domainID == null) {
+				// Invalid destination
 				localLogger("Domain ID for remote destination not found");
 				returnNoPathMessage();
 			} else {
-				//Get the PCEP address for the destination Domain 
+				// Get the PCEP address for the destination Domain
 				PCEPAddress remoteDomainAddress = TopologyInformationParent.getInstance().getDomainPCEAddress(domainID);
-				if (remoteDomainAddress==null) {
+				if (remoteDomainAddress == null) {
 					localLogger("PCE address for remote domain not found");
-					returnNoPathMessage();					
+					returnNoPathMessage();
 				} else {
-					//Make a connection to the remote domaini 
-					localLogger ("Connecting to PCE in domain " + domainID);
+					// Make a connection to the remote domaini
+					localLogger("Connecting to PCE in domain " + domainID);
 
 					lm.getSessionModule().registerConnection(remoteDomainAddress, false, true, true);
 
@@ -247,9 +260,10 @@ public class WorkerTaskParent extends WorkerTask {
 					String requestID = request.getRequestID();
 
 					ComputationModule cmp = lm.getComputationModule();
-					//Check if request can be sent to remote peer with the current request ID or if another request should be made
+					// Check if request can be sent to remote peer with the
+					// current request ID or if another request should be made
 					if (cmp.isValidRequestToRemotePeer(remoteDomainAddress, requestID) == false) {
-						//Need to generate a new request ID for parent PCE
+						// Need to generate a new request ID for parent PCE
 						do {
 							Random generator = new Random();
 							String temp = Integer.toString(generator.nextInt(3000) + 1);
@@ -257,14 +271,13 @@ public class WorkerTaskParent extends WorkerTask {
 								requestID = temp;
 								break;
 							}
-						} while(true);
+						} while (true);
 					}
-					//Register request with the computation module
+					// Register request with the computation module
 					cmp.registerRequestToRemotePeer(remoteDomainAddress, requestID, inQueue);
 
-
 					// Send information to the destination PCE
-					String endPointsPFlag ="1";
+					String endPointsPFlag = "1";
 					String endPointsIFlag = "0";
 
 					PCEPAddress sourceAddress = new PCEPAddress(request.getSourceRouterIP(), false);
@@ -273,81 +286,83 @@ public class WorkerTaskParent extends WorkerTask {
 					PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", requestID);
 					PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject(endPointsPFlag, endPointsIFlag, sourceAddress, destinationAddress);
 
-
 					PCEPRequestFrame requestMessage = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
 
-					//If bandwidth is non zero include bandwidth object
-					if (request.getBandwidth()>0) {
-						PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float)request.getBandwidth());
+					// If bandwidth is non zero include bandwidth object
+					if (request.getBandwidth() > 0) {
+						PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) request.getBandwidth());
 						requestMessage.insertBandwidthObject(bw);
 					}
 
 					PCEPMessage message = PCEPMessageFactory.generateMessage(requestMessage);
 
-					// Address destAddress = new Address(serverAddressTextField.getText());
+					// Address destAddress = new
+					// Address(serverAddressTextField.getText());
 
 					message.setAddress(remoteDomainAddress);
 
 					lm.getComputationModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
 
+					// Message sent to the client domain waiting for response
 
-					//Message sent to the client domain waiting for response
-
-					//Wait for response from remote peer (parent PCE)
+					// Wait for response from remote peer (parent PCE)
 					try {
 						PCEPMessage in = inQueue.take();
-						//Generate new Graph
-						//Response received from Server
+						// Generate new Graph
+						// Response received from Server
 						PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.getPathComputationResponseFrame(in);
 
-						//Check if a single path exists
+						// Check if a single path exists
 						if (responseFrame.containsNoPathObject()) {
 
 							localLogger("Response from Domain PCE in the destination domain contains a no Path Object");
-							//No path received from Parent PCE return No Path to Domain PCE
+							// No path received from Parent PCE return No Path
+							// to Domain PCE
 							returnNoPathMessage();
 						} else {
 							Gcontroller graph = TopologyInformationParent.getInstance().getGraph().createCopy();
-							graph.addVertex(new VertexElement(request.getDestRouterIP(), graph, 0,0));
+							graph.addVertex(new VertexElement(request.getDestRouterIP(), graph, 0, 0));
 
 							LinkedList<PCEPBandwidthObject> bwList = null;
 							if (responseFrame.containsBandwidthObjectList()) {
 								bwList = responseFrame.extractBandwidthObjectList();
 							}
-							int count =0;
-							Iterator <PCEPExplicitRouteObject> iter = responseFrame.extractExplicitRouteObjectList().iterator();
-							while(iter.hasNext()) {
-								double bw =0;
-								if (bwList!=null)
+							int count = 0;
+							Iterator<PCEPExplicitRouteObject> iter = responseFrame.extractExplicitRouteObjectList().iterator();
+							while (iter.hasNext()) {
+								double bw = 0;
+								if (bwList != null)
 									bw = bwList.get(count).getBandwidthFloatValue();
-								PCEPGenericExplicitRouteObjectImpl ero= (PCEPGenericExplicitRouteObjectImpl)iter.next();
-								String sourceID = ((PCEPAddress)ero.getTraversedVertexList().get(0)).getIPv4Address(false);
-								String destID = ((PCEPAddress)ero.getTraversedVertexList().get(ero.getTraversedVertexList().size()-1)).getIPv4Address(false);
-								EdgeElement edge = new EdgeElement(sourceID+"-" + destID, graph.getVertex(sourceID), graph.getVertex(destID), graph);
+								PCEPGenericExplicitRouteObjectImpl ero = (PCEPGenericExplicitRouteObjectImpl) iter.next();
+								String sourceID = ((PCEPAddress) ero.getTraversedVertexList().get(0)).getIPv4Address(false);
+								String destID = ((PCEPAddress) ero.getTraversedVertexList().get(ero.getTraversedVertexList().size() - 1)).getIPv4Address(false);
+								EdgeElement edge = new EdgeElement(sourceID + "-" + destID, graph.getVertex(sourceID), graph.getVertex(destID), graph);
 								ArrayList<String> vertexSequence = new ArrayList<String>();
-								for (int i=0; i< ero.getTraversedVertexList().size();i++)
-									vertexSequence.add(((PCEPAddress)ero.getTraversedVertexList().get(i)).getIPv4Address(false));
+								for (int i = 0; i < ero.getTraversedVertexList().size(); i++)
+									vertexSequence.add(((PCEPAddress) ero.getTraversedVertexList().get(i)).getIPv4Address(false));
 								EdgeParams params = new ParentVirtualLinkEdgeParams(edge, 1, responseFrame.extractExplicitRouteObjectList().size(), bw, vertexSequence);
 								edge.setEdgeParams(params);
 								graph.addEdge(edge);
 								count++;
 							}
 
-							//The new Graph has been populated with links to the destination based on the incoming EROs
+							// The new Graph has been populated with links to
+							// the destination based on the incoming EROs
 
-							//Add code for path computation Here 
+							// Add code for path computation Here
 
 							if (graph.vertexExists(request.getSourceRouterIP())) {
-								//compute a path from the destination to the Border node in the source domain
+								// compute a path from the destination to the
+								// Border node in the source domain
 								Constraint constr;
-								if (request.getBandwidth()>0){
+								if (request.getBandwidth() > 0) {
 									constr = new SimplePathComputationConstraint(graph.getVertex(request.getSourceRouterIP()), graph.getVertex(request.getDestRouterIP()), request.getBandwidth());
 								} else {
 									constr = new SimplePathComputationConstraint(graph.getVertex(request.getSourceRouterIP()), graph.getVertex(request.getDestRouterIP()));
 								}
 
 								PathElement element = request.getAlgo().computePath(graph, constr);
-								if (element !=null) {
+								if (element != null) {
 									localLogger("Computed path is " + element.getVertexSequence());
 									// return response
 									ArrayList<PCEPAddress> vertexList = getTraversedVertexes(element.getTraversedVertices(), graph);
@@ -360,58 +375,63 @@ public class WorkerTaskParent extends WorkerTask {
 									PCEPRequestParametersObject rp = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", request.getRequestID());
 									PCEPResponseFrame respFrame = PCEPResponseFrameFactory.generatePathComputationResponseFrame(rp);
 
-
 									respFrame.insertExplicitRouteObject(ERO);
 
 									if (request.getBandwidth() > 0) {
 										PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) element.getPathParams().getAvailableCapacity());
-										//										bwList.add(bw);
+										// bwList.add(bw);
 										respFrame.insertBandwidthObject(bw);
 									}
 									PCEPMessage outMessage = PCEPMessageFactory.generateMessage(respFrame);
 									outMessage.setAddress(request.getAddress());
 
-									// Send response message from the computation layer to the session layer
+									// Send response message from the
+									// computation layer to the session layer
 									lm.getComputationModule().sendMessage(outMessage, ModuleEnum.SESSION_MODULE);
 								} else {
-									//Path not found 
+									// Path not found
 									returnNoPathMessage();
 								}
 
-
 							} else {
-								//Path should be computed from the destination router ID to all the border nodes in the source Domain
+								// Path should be computed from the destination
+								// router ID to all the border nodes in the
+								// source Domain
 								domainID = TopologyInformationParent.getInstance().getDomainID(request.getSourceRouterIP());
 
-								if (domainID==null) {
+								if (domainID == null) {
 									localLogger("Domain Mapping not found for source node : " + request.getSourceRouterIP());
 									returnNoPathMessage();
 								} else {
-									//Get the set of border nodes associated with the domain
+									// Get the set of border nodes associated
+									// with the domain
 									Set<String> bnIDs = TopologyInformationParent.getInstance().getBorderNodes(domainID);
-									if (bnIDs==null) {
+									if (bnIDs == null) {
 										localLogger("Border nodes not found for domain : " + domainID);
 										returnNoPathMessage();
 									} else {
 										Iterator<String> iter1 = bnIDs.iterator();
 
 										ArrayList<PCEPExplicitRouteObject> eroList = new ArrayList<PCEPExplicitRouteObject>();
-										bwList = new LinkedList<PCEPBandwidthObject> ();
-										while(iter1.hasNext()) {
-											//Compute a path to this destination 
+										bwList = new LinkedList<PCEPBandwidthObject>();
+										while (iter1.hasNext()) {
+											// Compute a path to this
+											// destination
 											String sourceID = iter1.next();
 
 											if (graph.vertexExists(sourceID)) {
-												//compute a path from the destination to the Border node in the source domain
+												// compute a path from the
+												// destination to the Border
+												// node in the source domain
 												Constraint constr;
-												if (request.getBandwidth()>0){
+												if (request.getBandwidth() > 0) {
 													constr = new SimplePathComputationConstraint(graph.getVertex(sourceID), graph.getVertex(request.getDestRouterIP()), request.getBandwidth());
 												} else {
 													constr = new SimplePathComputationConstraint(graph.getVertex(sourceID), graph.getVertex(request.getDestRouterIP()));
 												}
 
 												PathElement element = request.getAlgo().computePath(graph, constr);
-												if (element !=null) {
+												if (element != null) {
 													localLogger("Computed path is " + element.getVertexSequence());
 													// return response
 													ArrayList<PCEPAddress> vertexList = getTraversedVertexes(element.getTraversedVertices(), graph);
@@ -432,25 +452,28 @@ public class WorkerTaskParent extends WorkerTask {
 											}
 
 										}
-										//Generate response frame
-										if (eroList.size()>0) {
-											//atleast one path was computed
+										// Generate response frame
+										if (eroList.size() > 0) {
+											// atleast one path was computed
 											PCEPRequestParametersObject rp = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", request.getRequestID());
 											PCEPResponseFrame respFrame = PCEPResponseFrameFactory.generatePathComputationResponseFrame(rp);
 											Iterator<PCEPExplicitRouteObject> eroIter = eroList.iterator();
-											while(eroIter.hasNext()) 
+											while (eroIter.hasNext())
 												respFrame.insertExplicitRouteObject(eroIter.next());
 
-											//Insert Bandwidth of computed Paths
+											// Insert Bandwidth of computed
+											// Paths
 											if (request.getBandwidth() > 0) {
 												Iterator<PCEPBandwidthObject> bwIter = bwList.iterator();
-												while(eroIter.hasNext()) 
+												while (eroIter.hasNext())
 													responseFrame.insertBandwidthObject(bwIter.next());
 											}
 
 											PCEPMessage outMessage = PCEPMessageFactory.generateMessage(respFrame);
 											outMessage.setAddress(request.getAddress());
-											// Send response message from the computation layer to the session layer
+											// Send response message from the
+											// computation layer to the session
+											// layer
 											lm.getComputationModule().sendMessage(outMessage, ModuleEnum.SESSION_MODULE);
 										} else {
 											returnNoPathMessage();
@@ -464,18 +487,15 @@ public class WorkerTaskParent extends WorkerTask {
 						localLogger("Interrupted when waiting for message from remote domain : " + e.getMessage());
 					}
 
-
 				}
-
 
 			}
 
 		}
 	}
 
-
 	private void returnNoPathMessage() {
-		//Generate a No path object
+		// Generate a No path object
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", request.getRequestID());
 		PCEPNoPathObject noPath = PCEPObjectFrameFactory.generatePCEPNoPathObject("1", "0", 1, "o");
 		PCEPResponseFrame responseFrame = PCEPResponseFrameFactory.generatePathComputationResponseFrame(RP);
@@ -484,8 +504,6 @@ public class WorkerTaskParent extends WorkerTask {
 		mesg.setAddress(request.getAddress());
 		lm.getComputationModule().sendMessage(mesg, ModuleEnum.SESSION_MODULE);
 	}
-
-
 
 	/** Function to update the graph instance used for computation */
 	public void updateGraph(Gcontroller newGraph) {
@@ -499,9 +517,9 @@ public class WorkerTaskParent extends WorkerTask {
 		processRequest();
 	}
 
-
 	/**
-	 * Function to get the list of traversed vertices from the response object. Used to create ERO
+	 * Function to get the list of traversed vertices from the response object.
+	 * Used to create ERO
 	 * 
 	 * @param resp
 	 * @return
@@ -509,18 +527,17 @@ public class WorkerTaskParent extends WorkerTask {
 	private ArrayList<PCEPAddress> getTraversedVertexes(ArrayList<VertexElement> vertexArrayList, Gcontroller graph) {
 
 		ArrayList<PCEPAddress> traversedVertexesList = new ArrayList<PCEPAddress>();
-		
-		//Add source address to the traversedVertexesList
+
+		// Add source address to the traversedVertexesList
 		traversedVertexesList.add(new PCEPAddress(vertexArrayList.get(0).getVertexID(), false));
-		
-		
-		for (int i = 0; i < vertexArrayList.size()-1; i++) {
-			//find the edge in the graph and extract the vertexSequence
+
+		for (int i = 0; i < vertexArrayList.size() - 1; i++) {
+			// find the edge in the graph and extract the vertexSequence
 			String sourceID = vertexArrayList.get(i).getVertexID();
-			String destID = vertexArrayList.get(i+1).getVertexID();
+			String destID = vertexArrayList.get(i + 1).getVertexID();
 			EdgeElement edge = graph.getConnectingEdge(sourceID, destID);
 			ArrayList<String> vertexIDs = edge.getEdgeParams().getVertexSequence(sourceID, destID);
-			for (int j=1;j<vertexIDs.size();j++) {
+			for (int j = 1; j < vertexIDs.size(); j++) {
 				traversedVertexesList.add(new PCEPAddress(vertexIDs.get(j), false));
 			}
 		}
