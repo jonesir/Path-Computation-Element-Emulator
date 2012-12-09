@@ -254,10 +254,7 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 				req.setSourceRouterIP(source.trim());
 				req.setDestRouterIP(destination.trim());
 				
-				PCEPITResourceObject it = null;
-				if (requestFrame.containsITResourceObject()) {
-					it = requestFrame.extractITResourceObject();
-				}
+				PCEPITResourceObject it = requestFrame.extractITResourceObject();
 				
 				// Check if IT resource parameters included, if yes, it is an IT request
 				// provide the request with IT constraints and algorithm
