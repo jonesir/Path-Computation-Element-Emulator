@@ -29,6 +29,7 @@ import com.pcee.architecture.computationmodule.ComputationModuleDomainImpl;
 import com.pcee.architecture.computationmodule.ComputationModuleParentImpl;
 import com.pcee.architecture.computationmodule.ted.TopologyInformationDomain;
 import com.pcee.architecture.computationmodule.ted.TopologyInformationParent;
+import com.pcee.architecture.computationmodule.ted.TopologyUpdateListener;
 import com.pcee.architecture.networkmodule.NetworkModule;
 import com.pcee.architecture.networkmodule.NetworkModuleImpl;
 import com.pcee.architecture.sessionmodule.SessionModule;
@@ -70,7 +71,7 @@ public class ModuleManagement {
 			Properties reader = new Properties();
 			reader.load(new FileInputStream(configFile));
 
-			int port = 0, sessionThreads = 0, computationThreads = 0;
+			int port = 0, rrPort = 0, sessionThreads = 0, computationThreads = 0;
 
 			String logger = reader.getProperty("logging");
 			if (logger.equalsIgnoreCase("on")) {
@@ -88,6 +89,8 @@ public class ModuleManagement {
 
 
 			port = Integer.valueOf(reader.getProperty("port"));
+			rrPort = Integer.valueOf(reader.getProperty("rrPort"));
+			
 			sessionThreads = Integer.valueOf(reader
 					.getProperty("sessionThreads"));
 			computationThreads = Integer.valueOf(reader
@@ -120,6 +123,8 @@ public class ModuleManagement {
 						TopologyInformationParent.setTopologyUpdatePort(Integer.parseInt(reader.getProperty("topologyUpdatePort")));
 						computationModule = new ComputationModuleParentImpl(this, computationThreads);
 					}
+					TopologyUpdateListener listener = new TopologyUpdateListener(this, role, rrPort);
+					listener.start();
 				} else {
 					clientModule = new ClientModuleImpl(this);
 				}

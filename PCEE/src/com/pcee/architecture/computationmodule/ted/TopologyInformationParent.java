@@ -270,7 +270,7 @@ public class TopologyInformationParent {
 		} else if (importer.equals("BRITE")) {
 			topology = new BRITEImportTopology();
 		} else {
-			topology = new SNDLibImportTopology();
+			topology = new MLSNDLibImportTopology();
 		}
 	}
 

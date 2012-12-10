@@ -46,7 +46,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private JPanel contentPane;
 
 	private int contentPaneWidth = 800;
-	private int contentPaneHeight = 600;
+	private int contentPaneHeight = 650;
 	private JButton btnParentPCE;
 
 	private JButton btnStartDomain_1;
@@ -85,6 +85,9 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private JLabel taResultDomain_1;
 	private JLabel taResultDomain_2;
+	
+	private JButton btnReserve_1;
+	private JButton btnReserve_2;
 
 	// --------------- Attributes --------------------
 	private boolean parentStarted = false;
@@ -94,6 +97,10 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private boolean connect2Established = false;
 	private boolean domain1ITRequest = false;
 	private boolean domain2ITRequest = false;
+	private boolean reserveReady1 = false;
+	private boolean reserveReady2 = false;
+	private boolean isReserve1 = true;
+	private boolean isReserve2 = true;
 
 	private String domainServerAddress1 = "127.0.0.1";
 	private int domainServerPort1;
@@ -330,10 +337,20 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		taResultDomain_2.setBounds(400, 420, 370, 129);
 		contentPane.add(taResultDomain_2);
 		
+		btnReserve_1 = new JButton("Reserve");
+		btnReserve_1.setHorizontalAlignment(SwingConstants.CENTER);
+		btnReserve_1.setBounds(this.btnRequestDomain_1.getX(),taResultDomain_1.getY()+taResultDomain_1.getSize().height+15, this.btnRequestDomain_1.getSize().width, this.btnRequestDomain_1.getSize().height);
+		contentPane.add(btnReserve_1);
+		
+		btnReserve_2 = new JButton("Reserve");
+		btnReserve_2.setHorizontalAlignment(SwingConstants.CENTER);
+		btnReserve_2.setBounds(this.btnRequestDomain_2.getX(), btnReserve_1.getY(), btnReserve_1.getSize().width, btnReserve_1.getSize().height);
+		contentPane.add(btnReserve_2);
+		
 		button = new JButton("");
 		button.setEnabled(false);
 		button.setBackground(Color.BLACK);
-		button.setBounds(387, 70, 6, 490);
+		button.setBounds(387, 70, 6, 550);
 		contentPane.add(button);
 
 		addActionListeners();
@@ -362,26 +379,48 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		this.btnRequestDomain_1.addActionListener(this);
 		this.btnRequestDomain_2.setActionCommand("request2");
 		this.btnRequestDomain_2.addActionListener(this);
+		this.btnReserve_1.setActionCommand("reserve1");
+		this.btnReserve_1.addActionListener(this);
+		this.btnReserve_2.setActionCommand("reserve2");
+		this.btnReserve_2.addActionListener(this);
 	}
 
 	private void changeAppearance() {
 		disableIT1();
 		disableIT2();
+		disableReserve1();
+		disableReserve2();
+	}
+	
+	private void enableReserve1() {
+		this.btnReserve_1.setEnabled(true);
+	}
+	
+	private void disableReserve1() {
+		this.btnReserve_1.setEnabled(false);
+	}
+	
+	private void enableReserve2() {
+		this.btnReserve_2.setEnabled(true);
+	}
+	
+	private void disableReserve2() {
+		this.btnReserve_2.setEnabled(false);
 	}
 
 	private void initParams() {
-		Properties reader = new Properties();
 		Properties reader1 = new Properties();
+		Properties reader2 = new Properties();
 		try {
-			reader.load(new FileInputStream("initDomain1.cfg"));
-			reader1.load(new FileInputStream("initDomain2.cfg"));
+			reader1.load(new FileInputStream("initDomain1.cfg"));
+			reader2.load(new FileInputStream("initDomain2.cfg"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		this.domainServerPort1 = Integer.parseInt(reader.getProperty("port"));
-		this.domainServerPort2 = Integer.parseInt(reader1.getProperty("port"));
+		this.domainServerPort1 = Integer.parseInt(reader1.getProperty("port"));
+		this.domainServerPort2 = Integer.parseInt(reader2.getProperty("port"));
 	}
 
 	private void enableIT1() {
@@ -436,7 +475,18 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			issueRequest1();
 		else if (arg0.getActionCommand().equals("request2"))
 			issueRequest2();
-
+		else if (arg0.getActionCommand().equals("reserve1"))
+			reserveRelease1();
+		else if (arg0.getActionCommand().equals("reserve2"))
+			reserveRelease2();
+	}
+	
+	private void reserveRelease1() {
+		
+	}
+	
+	private void reserveRelease2() {
+		
 	}
 
 	private void startParentPCE() {

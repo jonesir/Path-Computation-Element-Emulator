@@ -74,5 +74,10 @@ public class Logger {
 			logObject.logMsg(timeStamp + " " + msg);
 		}
 	}
+
+	public static void logQueuingAndComputationTime() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
