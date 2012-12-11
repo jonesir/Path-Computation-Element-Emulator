@@ -123,8 +123,8 @@ public class ModuleManagement {
 						TopologyInformationParent.setTopologyUpdatePort(Integer.parseInt(reader.getProperty("topologyUpdatePort")));
 						computationModule = new ComputationModuleParentImpl(this, computationThreads);
 					}
-					TopologyUpdateListener listener = new TopologyUpdateListener(this, role, rrPort);
-					listener.start();
+//					TopologyUpdateListener listener = new TopologyUpdateListener(this, role, rrPort);
+//					listener.start();
 				} else {
 					clientModule = new ClientModuleImpl(this);
 				}

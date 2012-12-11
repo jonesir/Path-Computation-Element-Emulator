@@ -39,6 +39,7 @@ import com.graph.elements.edge.params.EdgeParams;
 import com.graph.elements.edge.params.impl.ParentVirtualLinkEdgeParams;
 import com.graph.elements.edge.params.impl.PathElementEdgeParams;
 import com.graph.elements.vertex.VertexElement;
+import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.graphcontroller.impl.GcontrollerImpl;
 import com.graph.path.PathElement;
@@ -50,6 +51,7 @@ import com.graph.topology.importers.ImportTopology;
 import com.graph.topology.importers.impl.BRITEImportTopology;
 import com.graph.topology.importers.impl.MLSNDLibImportTopology;
 import com.graph.topology.importers.impl.SNDLibImportTopology;
+import com.pcee.architecture.computationmodule.ted.client.TopologyUpdateDomainClient;
 import com.pcee.logger.Logger;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
 
@@ -523,12 +525,42 @@ public class TopologyInformationParent {
 									}
 								}
 							}
+						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
+							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
+								if(!((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))){
+									localLogger("Can not reserve IT resource on parent for " + input.get("itID").toString());
+									((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+								} else {
+									PCEPAddress ipAddress = domainPCEinfo.get(nodeDomainMapping.get(input.get("itID").toString()));
+									TopologyUpdateDomainClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()), input.get("itID").toString());
+								}
+							} else {
+								localLogger("Invalid IT node ID " + input.get("itID").toString());
+							}
 							
+						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
+							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
+								if(!((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))){
+									localLogger("Can not release IT resource on parent for " + input.get("itID").toString());
+									((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+								} else {
+									PCEPAddress ipAddress = domainPCEinfo.get(nodeDomainMapping.get(input.get("itID").toString()));
+									TopologyUpdateDomainClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()), input.get("itID").toString());
+								}
+							} else {
+								localLogger("Invalid IT node ID " + input.get("itID").toString());
+							}
+						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
+							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
+								int cpu = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableCPU() - Integer.parseInt(input.get("cpu").toString());
+								int ram = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableRAM() - Integer.parseInt(input.get("ram").toString());
+								int storage = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableSTORAGE() - Integer.parseInt(input.get("storage").toString());
+								((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
+							} else {
+								localLogger("Invalid IT node ID " + input.get("itID").toString());
+							}
 						}
-
-						
 					}
-					
 					
 				} catch (JsonSyntaxException e) {
 					localLogger("Malformed Json sent from Client" + e.getMessage());

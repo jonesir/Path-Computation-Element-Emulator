@@ -326,6 +326,7 @@ public class ComputationModuleDomainImpl extends ComputationModule {
 				requestQueue.add(req);
 
 			} else {
+				localLogger("Both source and destination not in the domain PCE replying with a no path object");
 				// Invalid request respond with No path object
 				PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "0", "0", "1", requestID);
 

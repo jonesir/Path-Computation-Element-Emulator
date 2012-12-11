@@ -85,6 +85,31 @@ public class TopologyUpdateDomainClient {
 		sendMessage(ip, port, json);
 	}
 	
+	@SuppressWarnings({"unchecked", "rawtypes" })
+	public static void reserveITResource(String ip, int port, int cpu, int ram, int storage, String itID){
+		Map map = new HashMap();
+		map.put("operation", "itReserve");
+		map.put("cpu", cpu);
+		map.put("ram", ram);
+		map.put("storage", storage);
+		map.put("itID", itID);
+		String json = gson.toJson(map);
+		//Send message to the server
+		sendMessage(ip, port, json);
+	}
+	
+	@SuppressWarnings({"unchecked", "rawtypes" })
+	public static void releaseITResource(String ip, int port, int cpu, int ram, int storage, String itID) {
+		Map map = new HashMap();
+		map.put("operation", "itRelease");
+		map.put("cpu", cpu);
+		map.put("ram", ram);
+		map.put("storage", storage);
+		map.put("itID", itID);
+		String json = gson.toJson(map);
+		//Send message to the server
+		sendMessage(ip, port, json);
+	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void updateVirtualTopologyWithParent(String ip, int port) {

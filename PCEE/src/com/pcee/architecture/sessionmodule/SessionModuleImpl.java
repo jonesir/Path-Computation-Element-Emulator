@@ -377,7 +377,7 @@ public class SessionModuleImpl extends SessionModule {
 	 * @param event
 	 */
 	private void localLogger(String event) {
-		Logger.logSystemEvents("[SessionLayer] " + event);
+	//	Logger.logSystemEvents("[SessionLayer] " + event);
 	}
 
 	/**
@@ -387,7 +387,7 @@ public class SessionModuleImpl extends SessionModule {
 	 * @param event
 	 */
 	private void localDebugger(String event) {
-		Logger.debugger("[SessionLayer] " + event);
+	//	Logger.debugger("[SessionLayer] " + event);
 	}
 
 }

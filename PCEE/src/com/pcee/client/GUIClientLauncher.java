@@ -16,6 +16,7 @@ import javax.swing.SwingConstants;
 import com.pcee.architecture.ModuleEnum;
 import com.pcee.architecture.ModuleManagement;
 import com.pcee.architecture.clientmodule.ClientModuleImpl;
+import com.pcee.client.reserverelease.MultiDomainReserveRelease;
 import com.pcee.protocol.message.PCEPMessage;
 import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
@@ -46,7 +47,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private JPanel contentPane;
 
 	private int contentPaneWidth = 800;
-	private int contentPaneHeight = 650;
+	private int contentPaneHeight = 750;
 	private JButton btnParentPCE;
 
 	private JButton btnStartDomain_1;
@@ -85,9 +86,12 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private JLabel taResultDomain_1;
 	private JLabel taResultDomain_2;
-	
+
 	private JButton btnReserve_1;
 	private JButton btnReserve_2;
+
+	private JLabel rrResultDomain_1;
+	private JLabel rrResultDomain_2;
 
 	// --------------- Attributes --------------------
 	private boolean parentStarted = false;
@@ -95,17 +99,27 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private boolean domain2ServerStarted = false;
 	private boolean connect1Established = false;
 	private boolean connect2Established = false;
-	private boolean domain1ITRequest = false;
-	private boolean domain2ITRequest = false;
-	private boolean reserveReady1 = false;
-	private boolean reserveReady2 = false;
-	private boolean isReserve1 = true;
-	private boolean isReserve2 = true;
+	private boolean isITRequest1 = false;
+	private boolean isITRequest2 = false;
+	private boolean roleReserve1 = false;
+	private boolean roleReserve2 = false;
+	private boolean hasBandwidth1 = false;
+	private boolean hasBandwidth2 = false;
 
 	private String domainServerAddress1 = "127.0.0.1";
 	private int domainServerPort1;
 	private String domainServerAddress2 = "127.0.0.1";
 	private int domainServerPort2;
+
+	private double bandwidth1 = 0;
+	private double bandwidth2 = 0;
+	private String itNode1 = "";
+	private int CPU1 = 0, RAM1 = 0, STORAGE1 = 0;
+	private String itNode2 = "";
+	private int CPU2 = 0, RAM2 = 0, STORAGE2 = 0;
+
+	private ArrayList<String> vertexSequence1 = null;
+	private ArrayList<String> vertexSequence2 = null;
 
 	private ModuleManagement lm1;
 	private ModuleManagement lm2;
@@ -119,6 +133,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			public void run() {
 				try {
 					GUIClientLauncher frame = new GUIClientLauncher();
+					frame.setResizable(false);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -274,7 +289,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		storage1.setModel(new DefaultComboBoxModel(new String[] { "10", "20", "30", "40", "50", "60", "70", "80", "90" }));
 		storage1.setBounds(330, 290, 50, 20);
 		contentPane.add(storage1);
-		
+
 		JLabel label = new JLabel("CPU:");
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setBounds(494, 293, 35, 14);
@@ -333,24 +348,31 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		contentPane.add(taResultDomain_1);
 
 		taResultDomain_2 = new JLabel();
-		taResultDomain_2.setBackground(Color.WHITE);
 		taResultDomain_2.setBounds(400, 420, 370, 129);
 		contentPane.add(taResultDomain_2);
-		
+
 		btnReserve_1 = new JButton("Reserve");
 		btnReserve_1.setHorizontalAlignment(SwingConstants.CENTER);
-		btnReserve_1.setBounds(this.btnRequestDomain_1.getX(),taResultDomain_1.getY()+taResultDomain_1.getSize().height+15, this.btnRequestDomain_1.getSize().width, this.btnRequestDomain_1.getSize().height);
+		btnReserve_1.setBounds(this.btnRequestDomain_1.getX(), taResultDomain_1.getY() + taResultDomain_1.getSize().height + 15, this.btnRequestDomain_1.getSize().width, this.btnRequestDomain_1.getSize().height);
 		contentPane.add(btnReserve_1);
-		
+
 		btnReserve_2 = new JButton("Reserve");
 		btnReserve_2.setHorizontalAlignment(SwingConstants.CENTER);
 		btnReserve_2.setBounds(this.btnRequestDomain_2.getX(), btnReserve_1.getY(), btnReserve_1.getSize().width, btnReserve_1.getSize().height);
 		contentPane.add(btnReserve_2);
-		
+
+		rrResultDomain_1 = new JLabel();
+		rrResultDomain_1.setBounds(taResultDomain_1.getX(), btnReserve_1.getY() + btnReserve_1.getSize().height + 10, taResultDomain_1.getSize().width, 60);
+		contentPane.add(rrResultDomain_1);
+
+		rrResultDomain_2 = new JLabel();
+		rrResultDomain_2.setBounds(taResultDomain_2.getX(), btnReserve_2.getY() + btnReserve_2.getSize().height + 10, taResultDomain_2.getSize().width, 60);
+		contentPane.add(rrResultDomain_2);
+
 		button = new JButton("");
 		button.setEnabled(false);
 		button.setBackground(Color.BLACK);
-		button.setBounds(387, 70, 6, 550);
+		button.setBounds(387, 70, 6, 660);
 		contentPane.add(button);
 
 		addActionListeners();
@@ -358,6 +380,12 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		changeAppearance();
 
 		initParams();
+
+		parseMultiDomainInfo();
+	}
+
+	private void parseMultiDomainInfo() {
+		MultiDomainReserveRelease.parseMultiDomainInfo("multiDomainInfoClient.txt");
 	}
 
 	private void addActionListeners() {
@@ -391,19 +419,23 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		disableReserve1();
 		disableReserve2();
 	}
-	
+
 	private void enableReserve1() {
 		this.btnReserve_1.setEnabled(true);
+		this.btnReserve_1.setText("Reserve");
+		this.roleReserve1 = true;
 	}
-	
+
 	private void disableReserve1() {
 		this.btnReserve_1.setEnabled(false);
 	}
-	
+
 	private void enableReserve2() {
 		this.btnReserve_2.setEnabled(true);
+		this.btnReserve_2.setText("Reserve");
+		this.roleReserve2 = true;
 	}
-	
+
 	private void disableReserve2() {
 		this.btnReserve_2.setEnabled(false);
 	}
@@ -480,13 +512,75 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		else if (arg0.getActionCommand().equals("reserve2"))
 			reserveRelease2();
 	}
-	
+
 	private void reserveRelease1() {
-		
+		if (this.roleReserve1) {
+			makeReserve1();
+		} else {
+			makeRelease1();
+		}
+
+		updateReserveReleaseResult1();
 	}
-	
+
+	private void makeReserve1() {
+		if (this.isITRequest1) {
+			String sourceDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.vertexSequence1.get(0));
+			String itDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.itNode1);
+			boolean sameDomain = sourceDomain.equals(itDomain);
+			MultiDomainReserveRelease.itReserve(this.CPU1, this.RAM1, this.STORAGE1, this.itNode1, sameDomain);
+		}
+		MultiDomainReserveRelease.reserve(this.bandwidth1, this.vertexSequence1);
+		this.btnReserve_1.setText("Reserved, click to release");
+		this.roleReserve1 = false;
+	}
+
+	private void makeRelease1() {
+		if (this.isITRequest1) {
+			String sourceDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.vertexSequence1.get(0));
+			String itDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.itNode1);
+			boolean sameDomain = sourceDomain.equals(itDomain);
+			MultiDomainReserveRelease.itRelease(this.CPU1, this.RAM1, this.STORAGE1, this.itNode1, sameDomain);
+		}
+		MultiDomainReserveRelease.release(this.bandwidth1, this.vertexSequence1);
+		this.btnReserve_1.setText("Released");
+		disableReserve1();
+		this.roleReserve1 = true;
+	}
+
 	private void reserveRelease2() {
-		
+		if (this.roleReserve2) {
+			makeReserve2();
+		} else if (!this.roleReserve2) {
+			makeRelease2();
+		}
+
+		updateReserveReleaseResult2();
+	}
+
+	private void makeReserve2() {
+		if (this.isITRequest2) {
+			String sourceDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.vertexSequence2.get(0));
+			String itDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.itNode2);
+			boolean sameDomain = sourceDomain.equals(itDomain);
+			MultiDomainReserveRelease.itReserve(this.CPU2, this.RAM2, this.STORAGE2, this.itNode2, sameDomain);
+		}
+		MultiDomainReserveRelease.reserve(this.bandwidth2, this.vertexSequence2);
+		this.btnReserve_2.setText("Reserved, click to release");
+		this.roleReserve2 = false;
+	}
+
+	private void makeRelease2() {
+		if (this.isITRequest2) {
+			String sourceDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.vertexSequence2.get(0));
+			String itDomain = MultiDomainReserveRelease.nodeDomainMapping.get(this.itNode2);
+			boolean sameDomain = sourceDomain.equals(itDomain);
+			MultiDomainReserveRelease.itRelease(this.CPU2, this.RAM2, this.STORAGE2, this.itNode2, sameDomain);
+		}
+		MultiDomainReserveRelease.release(bandwidth2, vertexSequence2);
+		this.btnReserve_2.setText("Released");
+		disableReserve2();
+		this.roleReserve2 = true;
 	}
 
 	private void startParentPCE() {
@@ -498,7 +592,13 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		new ModuleManagement(true, "initParent.cfg");
+		// new ModuleManagement(true, "initParent.cfg");
+		Runtime r = Runtime.getRuntime();
+		try {
+			r.exec("java -jar PCE.jar initParent.cfg");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		this.parentStarted = true;
 		this.btnParentPCE.setBackground(Color.GREEN);
 		this.btnParentPCE.setText("Parent PCE is UP on port " + reader.getProperty("port"));
@@ -506,7 +606,13 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void startDomainServer1() {
 		if (this.parentStarted) {
-			new ModuleManagement(true, "initDomain1.cfg");
+			// new ModuleManagement(true, "initDomain1.cfg");
+			Runtime r = Runtime.getRuntime();
+			try {
+				r.exec("java -jar PCE.jar initDomain1.cfg");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			this.domain1ServerStarted = true;
 			this.btnStartDomain_1.setBackground(Color.GREEN);
 			this.btnStartDomain_1.setText("Domain 1 Server is UP on port " + this.domainServerPort1);
@@ -515,7 +621,14 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void startDomainServer2() {
 		if (this.parentStarted) {
-			new ModuleManagement(true, "initDomain2.cfg");
+			// new ModuleManagement(true, "initDomain2.cfg");
+			Runtime r = Runtime.getRuntime();
+			try {
+				r.exec("java -jar PCE.jar initDomain2.cfg");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			this.domain2ServerStarted = true;
 			this.btnStartDomain_2.setBackground(Color.GREEN);
 			this.btnStartDomain_2.setText("Domain 2 Server is UP on port " + this.domainServerPort2);
@@ -547,16 +660,16 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	}
 
 	private void processIT1() {
-		this.domain1ITRequest = this.chckbxItRequestDomain_1.isSelected();
-		if (this.domain1ITRequest)
+		this.isITRequest1 = this.chckbxItRequestDomain_1.isSelected();
+		if (this.isITRequest1)
 			enableIT1();
 		else
 			disableIT1();
 	}
 
 	private void processIT2() {
-		this.domain2ITRequest = this.chckbxItRequestDomain_2.isSelected();
-		if (this.domain2ITRequest)
+		this.isITRequest2 = this.chckbxItRequestDomain_2.isSelected();
+		if (this.isITRequest2)
 			enableIT2();
 		else
 			disableIT2();
@@ -567,11 +680,11 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			PCEPAddress sourceAddress = new PCEPAddress(this.tfSourceDomain_1.getText().trim(), false);
 			PCEPAddress destinationAddress = null;
 			PCEPITResourceObject it = null;
-			if (this.domain1ITRequest) {
-				int cpu = Integer.parseInt((String) this.cpu1.getSelectedItem());
-				int ram = Integer.parseInt((String) this.ram1.getSelectedItem());
-				int storage = Integer.parseInt((String) this.storage1.getSelectedItem());
-				it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
+			if (this.isITRequest1) {
+				this.CPU1 = Integer.parseInt((String) this.cpu1.getSelectedItem());
+				this.RAM1 = Integer.parseInt((String) this.ram1.getSelectedItem());
+				this.STORAGE1 = Integer.parseInt((String) this.storage1.getSelectedItem());
+				it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, this.CPU1, this.RAM1, this.STORAGE1);
 				destinationAddress = sourceAddress;
 			} else {
 				destinationAddress = new PCEPAddress(this.tfDestinationDomain_1.getText().trim(), false);
@@ -585,8 +698,12 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 				requestMessage.insertITResourceObject(it);
 
 			if (this.bandwidth_1.getSelectedIndex() != 0) {
-				PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", Integer.parseInt((String) this.bandwidth_1.getSelectedItem()));
+				this.hasBandwidth1 = true;
+				this.bandwidth1 = Double.parseDouble((String) this.bandwidth_1.getSelectedItem());
+				PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) this.bandwidth1);
 				requestMessage.insertBandwidthObject(bandwidth);
+			} else {
+				this.hasBandwidth1 = false;
 			}
 
 			PCEPAddress destAddress = new PCEPAddress(this.domainServerAddress1, this.domainServerPort1);
@@ -607,6 +724,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			if (responseMessage != null) {
 				updateResult1(PCEPResponseFrameFactory.getPathComputationResponseFrame(responseMessage));
 			}
+			
+			this.rrResultDomain_1.setText("");
 		}
 	}
 
@@ -615,11 +734,11 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			PCEPAddress sourceAddress = new PCEPAddress(this.tfSourceDomain_2.getText().trim(), false);
 			PCEPAddress destinationAddress = null;
 			PCEPITResourceObject it = null;
-			if (this.domain2ITRequest) {
-				int cpu = Integer.parseInt((String) this.cpu2.getSelectedItem());
-				int ram = Integer.parseInt((String) this.ram2.getSelectedItem());
-				int storage = Integer.parseInt((String) this.storage2.getSelectedItem());
-				it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
+			if (this.isITRequest2) {
+				this.CPU2 = Integer.parseInt((String) this.cpu2.getSelectedItem());
+				this.RAM2 = Integer.parseInt((String) this.ram2.getSelectedItem());
+				this.STORAGE2 = Integer.parseInt((String) this.storage2.getSelectedItem());
+				it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, this.CPU2, this.RAM2, this.STORAGE2);
 				destinationAddress = sourceAddress;
 			} else {
 				destinationAddress = new PCEPAddress(this.tfDestinationDomain_2.getText().trim(), false);
@@ -633,8 +752,12 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 				requestMessage.insertITResourceObject(it);
 
 			if (this.bandwidth_2.getSelectedIndex() != 0) {
-				PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", Integer.parseInt((String) this.bandwidth_2.getSelectedItem()));
+				this.hasBandwidth2 = true;
+				this.bandwidth2 = Double.parseDouble((String) this.bandwidth_2.getSelectedItem());
+				PCEPBandwidthObject bandwidth = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) this.bandwidth2);
 				requestMessage.insertBandwidthObject(bandwidth);
+			} else {
+				this.hasBandwidth2 = false;
 			}
 
 			PCEPAddress destAddress = new PCEPAddress(this.domainServerAddress2, this.domainServerPort2);
@@ -655,21 +778,27 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			if (responseMessage != null) {
 				updateResult2(PCEPResponseFrameFactory.getPathComputationResponseFrame(responseMessage));
 			}
+			
+			this.rrResultDomain_2.setText("");
 		}
 	}
 
 	private void updateResult1(PCEPResponseFrame response) {
-		String updateString = "<html>";
+
+		ArrayList<EROSubobjects> objs = null;
+
+		String updateString = "<html><center>";
 		if (response.containsNoPathObject()) {
-			if (this.domain1ITRequest)
-				updateString += "No IT Node has been found or no path between source and IT node</br>";
+			if (this.isITRequest1)
+				updateString += "<font color='red'>No IT Node has been found or no path between source and IT node</font></br>";
 			else
 				updateString += "No path between <font color='red' size=5>" + this.tfSourceDomain_1.getText() + "</font> and <font color='red' size=5>" + this.tfDestinationDomain_1.getText() + "</font><br>";
 		} else {
 			PCEPGenericExplicitRouteObjectImpl route = (PCEPGenericExplicitRouteObjectImpl) response.extractExplicitRouteObjectList().get(0);
-			ArrayList<EROSubobjects> objs = route.getTraversedVertexList();
-			if (this.domain1ITRequest) {
-				updateString += "<font color='green' size=6>IT node exists : </font> <font color='blue' size=6>" + ((PCEPAddress)objs.get(objs.size()-1)).getIPv4Address(false)+"</font><br>";
+			objs = route.getTraversedVertexList();
+			if (this.isITRequest1) {
+				this.itNode1 = ((PCEPAddress) objs.get(objs.size() - 1)).getIPv4Address(false);
+				updateString += "<font color='green' size=6>IT node exists : </font> <font color='blue' size=6>" + this.itNode1 + "</font><br>";
 			} else {
 				updateString += "<font color='green' size=6>Path exists!</font><br>";
 			}
@@ -683,23 +812,30 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 		}
 
-		updateString += "</html>";
+		updateString += "</center></html>";
 
 		this.taResultDomain_1.setText(updateString);
+		if (!response.containsNoPathObject() && (this.hasBandwidth1||this.isITRequest1)) {
+			assignVertexSequence1(objs);
+			enableReserve1();
+		}
 	}
 
 	private void updateResult2(PCEPResponseFrame response) {
-		String updateString = "<html>";
+		ArrayList<EROSubobjects> objs = null;
+
+		String updateString = "<html><center>";
 		if (response.containsNoPathObject()) {
-			if (this.domain2ITRequest)
-				updateString += "No IT Node has been found or no path between source and IT node</br>";
+			if (this.isITRequest2)
+				updateString += "<font color='red'>No IT Node has been found or no path between source and IT node</font></br>";
 			else
 				updateString += "No path between <font color='red' size=5>" + this.tfSourceDomain_2.getText() + "</font> and <font color='red' size=5>" + this.tfDestinationDomain_2.getText() + "</font><br>";
 		} else {
 			PCEPGenericExplicitRouteObjectImpl route = (PCEPGenericExplicitRouteObjectImpl) response.extractExplicitRouteObjectList().get(0);
-			ArrayList<EROSubobjects> objs = route.getTraversedVertexList();
-			if (this.domain2ITRequest) {
-				updateString += "<font color='green' size=6>IT node exists : </font> <font color='blue' size=6>" + ((PCEPAddress)objs.get(objs.size()-1)).getIPv4Address(false)+"</font><br>";
+			objs = route.getTraversedVertexList();
+			if (this.isITRequest2) {
+				this.itNode2 = ((PCEPAddress) objs.get(objs.size() - 1)).getIPv4Address(false);
+				updateString += "<font color='green' size=6>IT node exists : </font> <font color='blue' size=6>" + this.itNode2 + "</font><br>";
 			} else {
 				updateString += "<font color='green' size=6>Path exists!</font><br>";
 			}
@@ -713,9 +849,61 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 		}
 
-		updateString += "</html>";
+		updateString += "</center></html>";
 
 		this.taResultDomain_2.setText(updateString);
+		if (!response.containsNoPathObject() && (this.hasBandwidth2 || this.isITRequest2)) {
+			assignVertexSequence2(objs);
+			enableReserve2();
+		}
+	}
+
+	private void assignVertexSequence1(ArrayList<EROSubobjects> objs) {
+		this.vertexSequence1 = new ArrayList<String>();
+		for (int i = 0; i < objs.size(); i++)
+			this.vertexSequence1.add(((PCEPAddress) objs.get(i)).getIPv4Address(false));
+	}
+
+	private void assignVertexSequence2(ArrayList<EROSubobjects> objs) {
+		this.vertexSequence2 = new ArrayList<String>();
+		for (int i = 0; i < objs.size(); i++)
+			this.vertexSequence2.add(((PCEPAddress) objs.get(i)).getIPv4Address(false));
+	}
+
+	private void updateReserveReleaseResult1() {
+		String updateString = "<html><center>";
+		if (!this.roleReserve1) {
+			if (this.isITRequest1)
+				updateString += "IT NODE: <font color='blue'>" + this.itNode1 + " [CPU:" + this.CPU1 + ",RAM:" + this.RAM1 + ",STORAGE:" + this.STORAGE1 + "]</font>has been reserved!<br>";
+			if (this.hasBandwidth1)
+				updateString += "<font color='blue'>Bandwidth : " + this.bandwidth1 + "</font> has been reserved along the path<br>";
+		} else {
+			if (this.isITRequest1)
+				updateString += "IT NODE: <font color='purple'>" + this.itNode1 + " [CPU:" + this.CPU1 + ",RAM:" + this.RAM1 + ",STORAGE:" + this.STORAGE1 + "]</font>has been released!<br>";
+			if (this.hasBandwidth1)
+				updateString += "<font color='purple'>Bandwidth : " + this.bandwidth1 + "</font> has been released along the path<br>";
+		}
+		updateString += "</center></html>";
+		
+		this.rrResultDomain_1.setText(updateString);
+	}
+
+	private void updateReserveReleaseResult2() {
+		String updateString = "<html><center>";
+		if (!this.roleReserve2) {
+			if (this.isITRequest2)
+				updateString += "IT NODE: <font color='blue'>" + this.itNode2 + " [CPU:" + this.CPU2 + ",RAM:" + this.RAM2 + ",STORAGE:" + this.STORAGE2 + "]</font>has been reserved!<br>";
+			if (this.hasBandwidth2)
+				updateString += "<font color='blue'>Bandwidth : " + this.bandwidth2 + "</font> has been reserved along the path<br>";
+		} else {
+			if (this.isITRequest2)
+				updateString += "IT NODE: <font color='purple'>" + this.itNode2 + " [CPU:" + this.CPU2 + ",RAM:" + this.RAM2 + ",STORAGE:" + this.STORAGE2 + "]</font>has been released!<br>";
+			if (this.hasBandwidth2)
+				updateString += "<font color='purple'>Bandwidth : " + this.bandwidth2 + "</font> has been released along the path<br>";
+		}
+		updateString += "</center></html>";
+		
+		this.rrResultDomain_2.setText(updateString);
 	}
 
 }

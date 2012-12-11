@@ -37,6 +37,7 @@ import com.graph.elements.edge.EdgeElement;
 import com.graph.elements.edge.params.EdgeParams;
 import com.graph.elements.edge.params.impl.PathElementEdgeParams;
 import com.graph.elements.vertex.VertexElement;
+import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.graphcontroller.impl.GcontrollerImpl;
 import com.graph.path.PathElement;
@@ -59,19 +60,18 @@ import com.pcee.logger.Logger;
  */
 public class TopologyInformationDomain {
 
-	//JSON Parser
+	// JSON Parser
 	private static Gson json = new Gson();
 
-	//Port on which to listen for topology Information Updates
+	// Port on which to listen for topology Information Updates
 	private static int topologyUpdatePort = 5555;
 
-	//Port on which to Parent PCE listens for topology Information Updates
+	// Port on which to Parent PCE listens for topology Information Updates
 	private static int topologyUpdateParentPort = 5555;
 
-	//Port on which to Parent PCE listens for topology Information Updates
+	// Port on which to Parent PCE listens for topology Information Updates
 	private static String topologyUpdateParentIP = "127.0.0.1";
 
-	
 	// Static oject instance of the TopologyInformation Class
 	static private TopologyInformationDomain _instance;
 
@@ -87,15 +87,15 @@ public class TopologyInformationDomain {
 	// path to the topology description file
 	private static String topoPath = "atlantaDomain1.txt";
 
-	//path to the file with Border Node information 
+	// path to the file with Border Node information
 	private static String bnPath = "atlantaBNDomain1.txt";
 
-	//Graph Controller for the virtual Graph of the domain
+	// Graph Controller for the virtual Graph of the domain
 	private Gcontroller virtualGraph;
 
-
-	
-	/** Function to set the port on which to send topology Updates to the Parent PCE
+	/**
+	 * Function to set the port on which to send topology Updates to the Parent
+	 * PCE
 	 * 
 	 * @param topologyUpdateParentPort
 	 */
@@ -103,7 +103,8 @@ public class TopologyInformationDomain {
 		TopologyInformationDomain.topologyUpdateParentPort = topologyUpdateParentPort;
 	}
 
-	/**IP address on which to send the topology update to the Parent PCE
+	/**
+	 * IP address on which to send the topology update to the Parent PCE
 	 * 
 	 * @param topologyUpdateParentIP
 	 */
@@ -111,11 +112,12 @@ public class TopologyInformationDomain {
 		TopologyInformationDomain.topologyUpdateParentIP = topologyUpdateParentIP;
 	}
 
-	/**Function to set the port for topology Updates
+	/**
+	 * Function to set the port for topology Updates
 	 * 
 	 * @param port
 	 */
-	public static void setTopologyUpdatePort(int port){
+	public static void setTopologyUpdatePort(int port) {
 		topologyUpdatePort = port;
 	}
 
@@ -127,10 +129,11 @@ public class TopologyInformationDomain {
 		topoPath = input;
 	}
 
-
-	/** Function to set the list of border nodes to be used for path computation
+	/**
+	 * Function to set the list of border nodes to be used for path computation
 	 * 
-	 * @param input The location of the file with the list of border nodes
+	 * @param input
+	 *            The location of the file with the list of border nodes
 	 */
 	public static void setBnListPath(String input) {
 		bnPath = input;
@@ -150,13 +153,16 @@ public class TopologyInformationDomain {
 		}
 	}
 
-	/** Function to import the border node information from the file with the border nodes */
-	private void importBorderNodes(){
+	/**
+	 * Function to import the border node information from the file with the
+	 * border nodes
+	 */
+	private void importBorderNodes() {
 		bnID = new HashSet<String>();
 		try {
-			BufferedReader reader = new BufferedReader (new FileReader(bnPath));
+			BufferedReader reader = new BufferedReader(new FileReader(bnPath));
 			String temp;
-			while((temp=reader.readLine())!=null){
+			while ((temp = reader.readLine()) != null) {
 				String y = temp.trim();
 				if (graph.vertexExists(y)) {
 					bnID.add(y);
@@ -177,7 +183,7 @@ public class TopologyInformationDomain {
 	/** default constructor */
 	private TopologyInformationDomain() {
 
-		//topology = new SNDLibImportTopology();
+		// topology = new SNDLibImportTopology();
 		topology = new MLSNDLibImportTopology();
 		graph = new GcontrollerImpl();
 
@@ -192,54 +198,63 @@ public class TopologyInformationDomain {
 		else
 			localLogger("NetworkSize: " + networkSize());
 
-		//Function to import the border nodes into the TopologyInformation function
+		// Function to import the border nodes into the TopologyInformation
+		// function
 		importBorderNodes();
 
-		//Function to generate the virtualGraph of the topology
+		// Function to generate the virtualGraph of the topology
 		generateVirtualGraph();
-		
-		//startTopologyUpdateListner
+
+		// startTopologyUpdateListner
 		startTopologyUpdateListner();
 	}
 
-	/** Function to generate the virtual Graph for the domain
+	/**
+	 * Function to generate the virtual Graph for the domain
 	 * 
 	 */
 	private void generateVirtualGraph() {
 		virtualGraph = new GcontrollerImpl();
-		Iterator <String> iter =  bnID.iterator();
-		while(iter.hasNext()) {
-			String temp = iter.next();	
-			//Get the vertex from the original graph
+		Iterator<String> iter = bnID.iterator();
+		while (iter.hasNext()) {
+			String temp = iter.next();
+			// Get the vertex from the original graph
 			VertexElement x = graph.getVertex(temp);
-			//Add the vertex to the virtual graph
-			virtualGraph.addVertex(new VertexElement (temp, virtualGraph, x.getXCoord(), x.getYCoord()));
+			// Add the vertex to the virtual graph
+			VertexElement virtualVertex = new VertexElement(temp, virtualGraph, x.getXCoord(), x.getYCoord());
+			if (x.isITNode()) {
+				virtualVertex.setIsITNode(x.isITNode());
+				ITResourceVertexParams tmp = (ITResourceVertexParams) x.getVertexParams();
+				ITResourceVertexParams itp = new ITResourceVertexParams(virtualVertex, virtualVertex.getVertexID(), 0, tmp.getCpu(), tmp.getRam(), tmp.getStorage(), 0);
+				virtualVertex.setVertexParams(itp);
+			}
+			virtualGraph.addVertex(virtualVertex);
 		}
-		//Compute maximum bandwidth path between all vertex pairs and add them as edges in the domain topology
+		// Compute maximum bandwidth path between all vertex pairs and add them
+		// as edges in the domain topology
 		String[] vertices = bnID.toArray(new String[1]);
 		PathComputationAlgorithm algo = new MaxBandwidthShortestPathComputationAlgorithm();
-		for (int i=0;i<vertices.length-1;i++) {
-			for (int j=i+1; j< vertices.length; j++) {
-				Constraint constr = new SimplePathComputationConstraint (graph.getVertex(vertices[i]), graph.getVertex(vertices[j]));
+		for (int i = 0; i < vertices.length - 1; i++) {
+			for (int j = i + 1; j < vertices.length; j++) {
+				Constraint constr = new SimplePathComputationConstraint(graph.getVertex(vertices[i]), graph.getVertex(vertices[j]));
 				PathElement temp = algo.computePath(graph, constr);
 				if (temp != null) {
 					EdgeElement edge = new EdgeElement(vertices[i] + "-" + vertices[j], graph.getVertex(vertices[i]), graph.getVertex(vertices[j]), virtualGraph);
 					EdgeParams params = new PathElementEdgeParams(edge, temp);
 					edge.setEdgeParams(params);
 					virtualGraph.addEdge(edge);
-					
-					//Update the virtual Topology of the Parent
+
+					// Update the virtual Topology of the Parent
 					TopologyUpdateParentClient.updateEdge(topologyUpdateParentIP, topologyUpdateParentPort, temp);
 				}
 			}
 		}
 
 	}
-	
+
 	public Gcontroller getVirtualGraph() {
 		return this.virtualGraph;
 	}
-
 
 	/**
 	 * Function to update the graph instance used inside the Topology
@@ -262,7 +277,6 @@ public class TopologyInformationDomain {
 		bnID = newBnID;
 	}
 
-
 	/** Function to determine the network size */
 	public int networkSize() {
 		return graph.getVertexSet().size();
@@ -281,7 +295,7 @@ public class TopologyInformationDomain {
 	}
 
 	/** Function to get the list of border nodes used */
-	public Set<String> getBorderNodes(){
+	public Set<String> getBorderNodes() {
 		return bnID;
 	}
 
@@ -321,127 +335,161 @@ public class TopologyInformationDomain {
 		TopologyInformationDomain info = TopologyInformationDomain.getInstance();
 
 		Iterator<EdgeElement> iter = info.virtualGraph.getEdgeSet().iterator();
-		while(iter.hasNext()) {
+		while (iter.hasNext()) {
 			System.out.println(iter.next().getEdgeID());
 		}
 
 		iter = info.virtualGraph.getEdgeSet().iterator();
-		while(iter.hasNext()) {
+		while (iter.hasNext()) {
 			EdgeElement y = iter.next();
 			EdgeParams x = y.getEdgeParams();
 			Iterator<String> iter1 = x.getVertexSequence(y.getDestinationVertex().getVertexID(), y.getSourceVertex().getVertexID()).iterator();
 			System.out.println(y.getDestinationVertex().getVertexID() + "-" + y.getSourceVertex().getVertexID());
-			while(iter1.hasNext())
+			while (iter1.hasNext())
 				System.out.println("\t" + iter1.next());
 		}
 
-		//		System.out.println(new File(topoPath).getAbsolutePath());
+		// System.out.println(new File(topoPath).getAbsolutePath());
 	}
-
 
 	/** Function to initialize a thread to listen for topology updates */
 	private void startTopologyUpdateListner() {
 		Thread thread = new Thread() {
 
-			//Function to parse and implement incoming topology Updates
+			// Function to parse and implement incoming topology Updates
 			public void parseInput(String text) {
 				try {
 					Map input = json.fromJson(text, Map.class);
 					if (input.containsKey("operation")) {
 						if (input.get("operation").toString().equalsIgnoreCase("reserve")) {
-							//Request to reserve capacity on a sequence of nodes
+							// Request to reserve capacity on a sequence of
+							// nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
-							ArrayList vertexSequence = ((ArrayList)input.get("vertexSequence"));
-							synchronized(graph) {
-								for (int i=0;i<vertexSequence.size()-1;i++){
-									String sourceID = (String)vertexSequence.get(i);
-									String destID = (String)vertexSequence.get(i+1);
+							ArrayList vertexSequence = ((ArrayList) input.get("vertexSequence"));
+							synchronized (graph) {
+								for (int i = 0; i < vertexSequence.size() - 1; i++) {
+									String sourceID = (String) vertexSequence.get(i);
+									String destID = (String) vertexSequence.get(i + 1);
 									if (graph.aConnectingEdge(sourceID, destID)) {
-										if (graph.getConnectingEdge(sourceID, destID).getEdgeParams().reserveCapacity(capacity)) {
-											localLogger("Cannot reserve requested capacity between " + sourceID +" and " + destID);
-											for (int j=0;j<i;j++) {
-												//Releasing capacity that was reserved till before i
-												String srcID = (String)vertexSequence.get(j);
-												String dstID = (String)vertexSequence.get(j+1);
+										if (!graph.getConnectingEdge(sourceID, destID).getEdgeParams().reserveCapacity(capacity)) {
+											localLogger("Cannot reserve requested capacity between " + sourceID + " and " + destID);
+											for (int j = 0; j < i; j++) {
+												// Releasing capacity that was
+												// reserved till before i
+												String srcID = (String) vertexSequence.get(j);
+												String dstID = (String) vertexSequence.get(j + 1);
 												graph.getConnectingEdge(srcID, dstID).getEdgeParams().releaseCapacity(capacity);
 											}
 											break;
-											
+
 										}
 									} else {
-										localLogger("Invalid Vertex Sequence sent, no edge found between " + sourceID +" and " + destID);
-										for (int j=0;j<i;j++) {
-											//Releasing capacity that was reserved till before i
-											String srcID = (String)vertexSequence.get(j);
-											String dstID = (String)vertexSequence.get(j+1);
+										localLogger("Invalid Vertex Sequence sent, no edge found between " + sourceID + " and " + destID);
+										for (int j = 0; j < i; j++) {
+											// Releasing capacity that was
+											// reserved till before i
+											String srcID = (String) vertexSequence.get(j);
+											String dstID = (String) vertexSequence.get(j + 1);
 											graph.getConnectingEdge(srcID, dstID).getEdgeParams().releaseCapacity(capacity);
 										}
 										break;
 									}
 								}
 							}
-							
-						} else 	if (input.get("operation").toString().equalsIgnoreCase("release")) {
-							//Request to reserve capacity on a sequence of nodes
+
+						} else if (input.get("operation").toString().equalsIgnoreCase("release")) {
+							// Request to reserve capacity on a sequence of
+							// nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
-							ArrayList vertexSequence = ((ArrayList)input.get("vertexSequence"));
-							synchronized(graph) {
-								for (int i=0;i<vertexSequence.size()-1;i++){
-									String sourceID = (String)vertexSequence.get(i);
-									String destID = (String)vertexSequence.get(i+1);
+							ArrayList vertexSequence = ((ArrayList) input.get("vertexSequence"));
+							synchronized (graph) {
+								for (int i = 0; i < vertexSequence.size() - 1; i++) {
+									String sourceID = (String) vertexSequence.get(i);
+									String destID = (String) vertexSequence.get(i + 1);
 									if (graph.aConnectingEdge(sourceID, destID)) {
 										if (!graph.getConnectingEdge(sourceID, destID).getEdgeParams().releaseCapacity(capacity)) {
-											localLogger("Cannot release additional capacity between " + sourceID +" and " + destID);
-											for (int j=0;j<i;j++) {
-												//Releasing capacity that was reserved till before i
-												String srcID = (String)vertexSequence.get(j);
-												String dstID = (String)vertexSequence.get(j+1);
+											localLogger("Cannot release additional capacity between " + sourceID + " and " + destID);
+											for (int j = 0; j < i; j++) {
+												// Releasing capacity that was
+												// reserved till before i
+												String srcID = (String) vertexSequence.get(j);
+												String dstID = (String) vertexSequence.get(j + 1);
 												graph.getConnectingEdge(srcID, dstID).getEdgeParams().reserveCapacity(capacity);
 											}
 											break;
-											
+
 										}
 									} else {
-										localLogger("Invalid Vertex Sequence sent, no edge found between " + sourceID +" and " + destID);
-										for (int j=0;j<i;j++) {
-											//Releasing capacity that was reserved till before i
-											String srcID = (String)vertexSequence.get(j);
-											String dstID = (String)vertexSequence.get(j+1);
+										localLogger("Invalid Vertex Sequence sent, no edge found between " + sourceID + " and " + destID);
+										for (int j = 0; j < i; j++) {
+											// Releasing capacity that was
+											// reserved till before i
+											String srcID = (String) vertexSequence.get(j);
+											String dstID = (String) vertexSequence.get(j + 1);
 											graph.getConnectingEdge(srcID, dstID).getEdgeParams().reserveCapacity(capacity);
 										}
 										break;
 									}
 								}
 							}
-							
+
 						} else if (input.get("operation").toString().equalsIgnoreCase("updateVirtualTopologyBandwidth")) {
 							Iterator<EdgeElement> iter = virtualGraph.getEdgeSet().iterator();
-							while(iter.hasNext()) {
+							while (iter.hasNext()) {
 								PathElementEdgeParams temp = (PathElementEdgeParams) iter.next().getEdgeParams();
 								TopologyUpdateParentClient.updateEdge(topologyUpdateParentIP, topologyUpdateParentPort, temp.getPath());
 							}
 						} else if (input.get("operation").toString().equalsIgnoreCase("recomputeVirtualTopology")) {
-							//Computes a new virtual Graph 
-							//Update to parent sent within the generation code
+							// Computes a new virtual Graph
+							// Update to parent sent within the generation code
 							generateVirtualGraph();
-						} 
+						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
+							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams) {
+								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))) {
+									localLogger("Can not reserve requested IT node with IT resource!");
+									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+								} else {
+									ITResourceVertexParams updateVertex = (ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams();
+									TopologyUpdateParentClient.updateVertex(topologyUpdateParentIP, topologyUpdateParentPort, updateVertex.getAvailableCPU(), updateVertex.getAvailableRAM(), updateVertex.getAvailableSTORAGE(), updateVertex.getVertexElement().getVertexID());
+								}
+							} else {
+								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
+							}
+						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
+							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams) {
+								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))) {
+									localLogger("Can not release requested IT node with IT resource!");
+									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+								} else {
+									ITResourceVertexParams updateVertex = (ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams();
+									TopologyUpdateParentClient.updateVertex(topologyUpdateParentIP, topologyUpdateParentPort, updateVertex.getAvailableCPU(), updateVertex.getAvailableRAM(), updateVertex.getAvailableSTORAGE(), updateVertex.getVertexElement().getVertexID());
+								}
+							} else {
+								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
+							}
+						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
+							ITResourceVertexParams updateVertex;
+							for (VertexElement tmp : graph.getVertexSet()) {
+								if (tmp.getVertexParams() instanceof ITResourceVertexParams) {
+									updateVertex = (ITResourceVertexParams) tmp.getVertexParams();
+									TopologyUpdateParentClient.updateVertex(topologyUpdateParentIP, topologyUpdateParentPort, updateVertex.getAvailableCPU(), updateVertex.getAvailableRAM(), updateVertex.getAvailableSTORAGE(), updateVertex.getVertexElement().getVertexID());
+								}
+							}
+						}
 
-
-						
 					}
-					
-					
+
 				} catch (JsonSyntaxException e) {
 					localLogger("Malformed Json sent from Client" + e.getMessage());
 				} catch (Exception e) {
 					localLogger("Invalid parameters sent in the JSON from Client : " + e.getMessage());
-					
+
 				}
 
 			}
 
-
-			// Override the run() method to implement a simple server socket to listen for topology updates
+			// Override the run() method to implement a simple server socket to
+			// listen for topology updates
 			public void run() {
 				ServerSocket serverSocket;
 				try {
@@ -450,7 +498,8 @@ public class TopologyInformationDomain {
 					while (true) {
 						try {
 							Socket clientSocket = serverSocket.accept();
-							// Remote connection sends topology in the form of a string with a delimiter "@" used for each line
+							// Remote connection sends topology in the form of a
+							// string with a delimiter "@" used for each line
 							BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 							String text = "";
 							String line = "";

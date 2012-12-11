@@ -992,9 +992,9 @@ public abstract class StateMachineImpl extends StateMachine {
 
 	protected void localLogger(String event) {
 
-		String prefix = prefixGenerator();
-		Logger.logSystemEvents("[StateMachine: " + address.getIPv4Address() +
-				"]" + prefix + " " + event);
+	//	String prefix = prefixGenerator();
+	//	Logger.logSystemEvents("[StateMachine: " + address.getIPv4Address() +
+	//			"]" + prefix + " " + event);
 	}
 
 	protected void localDebugger(String event) {
