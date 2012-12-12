@@ -197,7 +197,7 @@ public class MultiDomainReserveRelease {
 		} else {
 			ipAddress = topologyUpdateServerinfo.get("PARENT");
 		}
-		TopologyUpdateParentClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), cpu, ram, storage, itID);
+		TopologyUpdateDomainClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), cpu, ram, storage, itID);
 	}
 
 	public static void itRelease(int cpu, int ram, int storage, String itID, boolean domain) {
@@ -207,7 +207,7 @@ public class MultiDomainReserveRelease {
 		} else {
 			ipAddress = topologyUpdateServerinfo.get("PARENT");
 		}
-		TopologyUpdateParentClient.releaseITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), cpu, ram, storage, itID);
+		TopologyUpdateDomainClient.releaseITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), cpu, ram, storage, itID);
 	}
 
 	/**

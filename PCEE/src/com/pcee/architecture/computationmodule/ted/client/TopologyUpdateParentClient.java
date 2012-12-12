@@ -67,7 +67,7 @@ public class TopologyUpdateParentClient {
 		map.put("storage", storage);
 		map.put("itID", itID);
 		String json = gson.toJson(map);
-		//Send message to the server
+		// Send message to the server
 		sendMessage(ip, port, json);
 	}
 
