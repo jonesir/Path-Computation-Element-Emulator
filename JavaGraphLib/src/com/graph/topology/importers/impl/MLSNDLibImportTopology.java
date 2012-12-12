@@ -18,13 +18,14 @@
 package com.graph.topology.importers.impl;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.globalGraph.TopoGlobal;
 import com.graph.elements.edge.EdgeElement;
 import com.graph.elements.edge.params.EdgeParams;
 import com.graph.elements.edge.params.impl.BasicEdgeParams;
@@ -105,7 +106,7 @@ public class MLSNDLibImportTopology extends ImportTopology {
 						param = new ITResourceVertexParams(vertex1, sourceID, 0, itValues[0], itValues[1], itValues[2], 0);
 						param.setVertexElement(vertex1);
 						vertex1.setVertexParams(param);
-						System.out.println("IT " + vertex1.getVertexID() + " cpu: " + itValues[0] + ", ram : " + itValues[1] + " , storage : " + itValues[2]);
+						System.out.println("IT " + vertex1.getVertexID() + " cpu: " + itValues[0] + ", ram : " + itValues[1] + ", storage : " + itValues[2]);
 					}
 				}
 				graph.addVertex(vertex1);
@@ -147,7 +148,9 @@ public class MLSNDLibImportTopology extends ImportTopology {
 
 				double delay = distance / 29.9792458; // (in ms)
 				// @TODO import parameters for link weight and delay from brite
-				EdgeParams params = new BasicEdgeParams(edge, delay, 1, TopoGlobal.initBandwidth);
+				Properties leser = new Properties();
+				leser.load(new FileInputStream("init.cfg"));
+				EdgeParams params = new BasicEdgeParams(edge, delay, 1, Double.parseDouble(leser.getProperty("initBandwidth")));
 
 				// Temporary element to set available link capacity to 0 for all
 				// links
