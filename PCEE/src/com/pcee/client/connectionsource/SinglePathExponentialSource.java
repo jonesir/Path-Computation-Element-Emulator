@@ -124,7 +124,7 @@ public class SinglePathExponentialSource extends Source {
 	@Override
 	public int getBlockedConnections() {
 		// TODO Auto-generated method stub
-		return 0;
+		return this.blockedConnections;
 	}
 
 }

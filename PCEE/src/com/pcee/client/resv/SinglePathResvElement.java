@@ -46,7 +46,10 @@ public class SinglePathResvElement extends ResvElement {
 	@Override
 	public boolean reserveConnection() {
 		// Call function to PCE client to compute path from source to destion
-		System.out.println("Making path computation request to server from : " + sourceID + " to" + destID);
+		if(Launcher.isITRequest)
+			System.out.println("Making IT request with source: " + sourceID + ", and ITs [CPU:" + cpu + ", RAM:"+ram+",STORAGE:"+storage+"]");
+		else 
+			System.out.println("Making path computation request to server from : " + sourceID + " to" + destID);
 		System.out.println("\n\n\n\n\n\n");
 		PCEPResponseFrame frame = Launcher.getPath(sourceID, destID, cpu, ram, storage, (float) bw, (float) delay);
 		if (frame.containsNoPathObject()) {
@@ -80,33 +83,21 @@ public class SinglePathResvElement extends ResvElement {
 		// like the reserve function, the release function also release
 		// bandwidth along only one path
 		// object.get(0) will get the path that needed to be release
-		ArrayList<EROSubobjects> subobjects = ((PCEPGenericExplicitRouteObjectImpl) objectList.get(0)).getTraversedVertexList();
-		for (int j = 0; j < subobjects.size() - 1; j++) {
-			String ingress = ((PCEPAddress) (subobjects.get(j))).getIPv4Address(false);
-			String egress = ((PCEPAddress) (subobjects.get(j + 1))).getIPv4Address(false);
-			System.out.println("||||Making release between " + ingress + " and " + egress + ".");
+		ArrayList<EROSubobjects> objs = ((PCEPGenericExplicitRouteObjectImpl) objectList.get(0)).getTraversedVertexList();
+		ArrayList<String> vertexSequence = new ArrayList<String>();
+		for(int i = 0 ; i < objs.size() ; i++) {
+			vertexSequence.add(((PCEPAddress)objs.get(i)).getIPv4Address(false));
 		}
+		
+		MultiDomainReserveRelease.release(bw, vertexSequence);
+		if(Launcher.isITRequest)
+			MultiDomainReserveRelease.itRelease(cpu, ram, storage, vertexSequence.get(vertexSequence.size()-1), true);
 		return true;
 	}
 
 	@Override
 	public double getPathDelay() {
 		return 0;
-	}
-
-	@Override
-	public boolean reserveConnection1P1() {
-		return false;
-	}
-
-	@Override
-	public boolean releaseConnectionAndITResource() {
-		return false;
-	}
-
-	@Override
-	public boolean reserveConnectionWithITResource() {
-		return false;
 	}
 
 }

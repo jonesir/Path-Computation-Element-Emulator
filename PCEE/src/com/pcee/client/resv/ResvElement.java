@@ -30,6 +30,8 @@ public abstract class ResvElement {
 	protected int ram;
 	protected int storage;
 	
+	protected boolean isITRequest;
+	
 	/**Function to get the reservation ID*/
 	public String getResvID(){
 		return this.ID;
@@ -70,22 +72,10 @@ public abstract class ResvElement {
 		return true;
 	}
 	
-	//for with it resource requirement scenario
-	public abstract boolean reserveConnectionWithITResource();
-	
-	// for 1+1 secure scenario
-	public abstract boolean reserveConnection1P1();
-	
 	// for normal scenario
 	public abstract boolean reserveConnection();
 	
 	public abstract boolean releaseConnection();
-	
-	public abstract boolean releaseConnectionAndITResource();
-	
-	public boolean releaseConnectionAndITResourceWithHierarchicalPCESupportingITExtentionForSinglePathScenario(){
-		return true;
-	}
 	
 	public abstract double getPathDelay();
 	

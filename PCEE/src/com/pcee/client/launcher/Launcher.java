@@ -80,13 +80,13 @@ public class Launcher {
 		holdingTime = Double.parseDouble(reader.getProperty("holdingTime"));
 
 		// Initialize Multi-Domain Information
-		MultiDomainReserveRelease.parseMultiDomainInfo("multiDomainInfo.txt");
+		MultiDomainReserveRelease.parseMultiDomainInfo("multiDomainInfoClient.txt");
 
 		// Initialize Multi-Domain Node : Domain Mapping
 		parseMultiDomainNodeDomainMapping(reader.getProperty("multiDomainNodes"));
 
 		// Initialize Multi-Domain Domain : Address
-		parseMultiDomainDomainAddressMapping(reader.getProperty("multDomainNodes"));
+		parseMultiDomainDomainAddressMapping(reader.getProperty("multiDomainNodes"));
 
 		// Initialized ModuleManagement to establish connections to all domains
 		initModuleManagement();
@@ -109,6 +109,7 @@ public class Launcher {
 				System.exit(0);
 			}
 			nodeDomainMapping = new HashMap<String, String>();
+			multiDomainNodes = new ArrayList<String>();
 			while ((temp = reader.readLine()) != null) {
 				// End Loop when parsing of block is complete
 				temp = temp.trim();
@@ -196,7 +197,7 @@ public class Launcher {
 		PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject("1", "0", sourceAddress, destinationAddress);
 		PCEPRequestFrame requestMessage = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
 		
-		requestMessage.insertBandwidthObject(bandwidthObject);
+//		requestMessage.insertBandwidthObject(bandwidthObject);
 		if (it != null)
 			requestMessage.insertITResourceObject(it);
 
@@ -225,7 +226,7 @@ public class Launcher {
 	}
 
 	public static boolean itOrNormal() {
-		return random.nextInt(endTime) <= itRequestPercent;
+		return random.nextInt(endTime) <= endTime*itRequestPercent/100;
 	}
 
 	public static void main(String[] args) {
@@ -258,7 +259,7 @@ public class Launcher {
 			 Logger.logTimeStamps();
 
 			/** end the request sending process and reset client */
-			// TopologyUpdateLauncher.sendUpdate(GlobalCfg.prrAddress,
+			// TopologyUpdateLauncher.sendUpdatje(GlobalCfg.prrAddress,
 			// GlobalCfg.prrPort, "FINISHED");
 			 Logger.reset();
 		}

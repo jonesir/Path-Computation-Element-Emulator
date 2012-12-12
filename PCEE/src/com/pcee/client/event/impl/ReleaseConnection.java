@@ -15,6 +15,7 @@ public class ReleaseConnection extends Event {
 		this.setTime(element.getEndTime());
 		priority = 1;
 		this.source = source;
+		
 	}
 
 	@Override
