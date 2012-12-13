@@ -220,7 +220,7 @@ public class WorkerTaskDomain extends WorkerTask {
 				//Add bandwidth to the response message if the request contains the bandwidth object
 				if (request.getBandwidth() > 0) {
 					Iterator<PCEPBandwidthObject> bwIter = bwList.iterator();
-					while(eroIter.hasNext()) 
+					while(bwIter.hasNext()) 
 						responseFrame.insertBandwidthObject(bwIter.next());
 				}
 				PCEPMessage message = PCEPMessageFactory.generateMessage(responseFrame);

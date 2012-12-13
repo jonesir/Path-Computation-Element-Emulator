@@ -8,6 +8,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
@@ -42,6 +45,11 @@ import java.util.Properties;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 
+/**
+ * @author Yuesheng Zhong
+ *
+ */
+@SuppressWarnings("serial")
 public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private JPanel contentPane;
@@ -533,6 +541,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		MultiDomainReserveRelease.reserve(this.bandwidth1, this.vertexSequence1);
 		this.btnReserve_1.setText("Reserved, click to release");
 		this.roleReserve1 = false;
+		this.btnRequestDomain_1.setEnabled(false);
 	}
 
 	private void makeRelease1() {
@@ -546,6 +555,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		this.btnReserve_1.setText("Released");
 		disableReserve1();
 		this.roleReserve1 = true;
+		this.btnRequestDomain_1.setEnabled(true);
 	}
 
 	private void reserveRelease2() {
@@ -568,6 +578,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		MultiDomainReserveRelease.reserve(this.bandwidth2, this.vertexSequence2);
 		this.btnReserve_2.setText("Reserved, click to release");
 		this.roleReserve2 = false;
+		this.btnRequestDomain_2.setEnabled(false);
 	}
 
 	private void makeRelease2() {
@@ -581,6 +592,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		this.btnReserve_2.setText("Released");
 		disableReserve2();
 		this.roleReserve2 = true;
+		this.btnRequestDomain_2.setEnabled(true);
 	}
 
 	private void startParentPCE() {
@@ -904,6 +916,10 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		updateString += "</center></html>";
 		
 		this.rrResultDomain_2.setText(updateString);
+	}
+	
+	public void windowClosing(WindowEvent e){
+		
 	}
 
 }

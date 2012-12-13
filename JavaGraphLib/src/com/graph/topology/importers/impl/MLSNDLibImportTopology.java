@@ -35,6 +35,7 @@ import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.elements.vertex.params.VertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.graphcontroller.impl.GcontrollerImpl;
+import com.graph.intf.ParamsInitializer;
 import com.graph.logger.GraphLogger;
 import com.graph.topology.importers.ImportTopology;
 
@@ -56,7 +57,7 @@ public class MLSNDLibImportTopology extends ImportTopology {
 
 			// read till we reach the end of node definitions
 			while ((temp = reader.readLine()) != null) {
-				System.out.println(temp);
+//				System.out.println(temp);
 				temp = temp.trim();
 				if (temp.trim().compareTo(")") == 0) {
 					break;
@@ -89,13 +90,13 @@ public class MLSNDLibImportTopology extends ImportTopology {
 				if (m.find()) {
 					String bOrI = m.group(0);
 					if (bOrI.equals("BORDER")) {
-						System.out.println("Border Found!");
+//						System.out.println("Border Found!");
 						vertex1.setIsBorderNode(true);
 						param = new BasicVertexParams();
 						param.setVertexElement(vertex1);
 						vertex1.setVertexParams(param);
 					} else if (bOrI.equals("IT")) {
-						System.out.println("IT Found!");
+//						System.out.println("IT Found!");
 						vertex1.setIsITNode(true);
 						while (m.find()) {
 							itValues[count] = Integer.parseInt(m.group(0));
@@ -106,7 +107,7 @@ public class MLSNDLibImportTopology extends ImportTopology {
 						param = new ITResourceVertexParams(vertex1, sourceID, 0, itValues[0], itValues[1], itValues[2], 0);
 						param.setVertexElement(vertex1);
 						vertex1.setVertexParams(param);
-						System.out.println("IT " + vertex1.getVertexID() + " cpu: " + itValues[0] + ", ram : " + itValues[1] + ", storage : " + itValues[2]);
+//						System.out.println("IT " + vertex1.getVertexID() + " cpu: " + itValues[0] + ", ram : " + itValues[1] + ", storage : " + itValues[2]);
 					}
 				}
 				graph.addVertex(vertex1);
@@ -144,13 +145,12 @@ public class MLSNDLibImportTopology extends ImportTopology {
 				EdgeElement edge = new EdgeElement(temp1[0], vertex1, vertex2, graph);
 
 				// Compute delay using X and Y Coords from Vertices
-				double distance = Math.sqrt(Math.pow(vertex1.getXCoord() - vertex2.getXCoord(), 2) + Math.pow(vertex1.getYCoord() - vertex2.getYCoord(), 2));
-
-				double delay = distance / 29.9792458; // (in ms)
+//				double distance = Math.sqrt(Math.pow(vertex1.getXCoord() - vertex2.getXCoord(), 2) + Math.pow(vertex1.getYCoord() - vertex2.getYCoord(), 2));
+//				double delay = distance / 29.9792458; // (in ms)
 				// @TODO import parameters for link weight and delay from brite
 				Properties leser = new Properties();
 				leser.load(new FileInputStream("init.cfg"));
-				EdgeParams params = new BasicEdgeParams(edge, delay, 1, Double.parseDouble(leser.getProperty("initBandwidth")));
+				EdgeParams params = new BasicEdgeParams(edge, ParamsInitializer.initDelay(vertex1, vertex2), 1, Double.parseDouble(leser.getProperty("initBandwidth")));
 
 				// Temporary element to set available link capacity to 0 for all
 				// links

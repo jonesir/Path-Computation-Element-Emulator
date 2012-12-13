@@ -37,8 +37,7 @@ public class SinglePathExponentialSource extends Source {
 		
 		int source = random.nextInt(Launcher.multiDomainNodes.size());
 		int destination;
-		Launcher.isITRequest = Launcher.itOrNormal();
-		if (Launcher.isITRequest) {
+		if (Launcher.itOrNormal()) {
 			destination = source;
 			int cpu = random.nextInt(cpuHigh-cpuLow + 1) + cpuLow;
 			int ram = random.nextInt(ramHigh-ramLow + 1) + ramLow;

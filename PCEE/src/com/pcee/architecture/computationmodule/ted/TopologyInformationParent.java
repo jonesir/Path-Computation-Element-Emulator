@@ -52,6 +52,8 @@ import com.graph.topology.importers.impl.BRITEImportTopology;
 import com.graph.topology.importers.impl.MLSNDLibImportTopology;
 import com.graph.topology.importers.impl.SNDLibImportTopology;
 import com.pcee.architecture.computationmodule.ted.client.TopologyUpdateDomainClient;
+import com.pcee.architecture.computationmodule.ted.client.TopologyUpdateParentClient;
+import com.pcee.client.reserverelease.MultiDomainReserveRelease;
 import com.pcee.logger.Logger;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
 
@@ -295,6 +297,7 @@ public class TopologyInformationParent {
 		else
 			localLogger("NetworkSize: " + networkSize());
 
+		Logger.graphSnapshot(graph, "TopologyInformationParent.java - finish importing graph");
 		//Function to import the border nodes into the TopologyInformation function
 		parseMultiDomainInfo();
 
@@ -459,7 +462,7 @@ public class TopologyInformationParent {
 								
 								
 							}
-							
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - updateEdgeDefinition");
 						}else if (input.get("operation").toString().equalsIgnoreCase("reserve")) {
 							//Request to reserve capacity on a sequence of nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
@@ -492,7 +495,7 @@ public class TopologyInformationParent {
 									}
 								}
 							}
-							
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - reserve");
 						} else 	if (input.get("operation").toString().equalsIgnoreCase("release")) {
 							//Request to reserve capacity on a sequence of nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
@@ -525,40 +528,49 @@ public class TopologyInformationParent {
 									}
 								}
 							}
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - release");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
-							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
-								if(!((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))){
-									localLogger("Can not reserve IT resource on parent for " + input.get("itID").toString());
-									((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+							int cpu = (int) Double.parseDouble(input.get("cpu").toString());
+							int ram = (int) Double.parseDouble(input.get("ram").toString());
+							int storage = (int) Double.parseDouble(input.get("storage").toString());
+							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
+								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage)) {
+									localLogger("Can not reserve requested IT node with IT resource!");
+									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(cpu, ram, storage);
 								} else {
-									PCEPAddress ipAddress = domainPCEinfo.get(nodeDomainMapping.get(input.get("itID").toString()));
-									TopologyUpdateDomainClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()), input.get("itID").toString());
+									MultiDomainReserveRelease.itReserve(cpu, ram, storage, input.get("itID").toString(), true);
 								}
+
 							} else {
-								localLogger("Invalid IT node ID " + input.get("itID").toString());
+								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
 							}
-							
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itReserve");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
-							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
-								if(!((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()))){
-									localLogger("Can not release IT resource on parent for " + input.get("itID").toString());
-									((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()));
+							int cpu = (int) Double.parseDouble(input.get("cpu").toString());
+							int ram = (int) Double.parseDouble(input.get("ram").toString());
+							int storage = (int) Double.parseDouble(input.get("storage").toString());
+							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
+								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(cpu, ram, storage)) {
+									localLogger("Can not reserve requested IT node with IT resource!");
+									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
 								} else {
-									PCEPAddress ipAddress = domainPCEinfo.get(nodeDomainMapping.get(input.get("itID").toString()));
-									TopologyUpdateDomainClient.reserveITResource(ipAddress.getIPv4Address(false), ipAddress.getPort(), Integer.parseInt(input.get("cpu").toString()), Integer.parseInt(input.get("ram").toString()), Integer.parseInt(input.get("storage").toString()), input.get("itID").toString());
+									MultiDomainReserveRelease.itRelease(cpu, ram, storage, input.get("itID").toString(), true);
 								}
+
 							} else {
-								localLogger("Invalid IT node ID " + input.get("itID").toString());
+								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
 							}
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itRelease");
 						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
-							if(graph.vertexExists(input.get("itID").toString()) && (graph.getVertex(input.get("itID").toString()).getVertexParams() instanceof ITResourceVertexParams)){
-								int cpu = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableCPU() - Integer.parseInt(input.get("cpu").toString());
-								int ram = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableRAM() - Integer.parseInt(input.get("ram").toString());
-								int storage = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableSTORAGE() - Integer.parseInt(input.get("storage").toString());
+							if(graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()){
+								int cpu = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableCPU() - (int)Double.parseDouble(input.get("cpu").toString());
+								int ram = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableRAM() - (int)Double.parseDouble(input.get("ram").toString());
+								int storage = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableSTORAGE() - (int)Double.parseDouble(input.get("storage").toString());
 								((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
 							} else {
 								localLogger("Invalid IT node ID " + input.get("itID").toString());
 							}
+							Logger.graphSnapshot(graph, "TopologyInformationParent.java - updateVertex");
 						}
 					}
 					

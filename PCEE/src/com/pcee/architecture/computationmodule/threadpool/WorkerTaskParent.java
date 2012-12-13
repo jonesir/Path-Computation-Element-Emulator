@@ -465,8 +465,8 @@ public class WorkerTaskParent extends WorkerTask {
 											// Paths
 											if (request.getBandwidth() > 0) {
 												Iterator<PCEPBandwidthObject> bwIter = bwList.iterator();
-												while (eroIter.hasNext())
-													responseFrame.insertBandwidthObject(bwIter.next());
+												while (bwIter.hasNext())
+													respFrame.insertBandwidthObject(bwIter.next());
 											}
 
 											PCEPMessage outMessage = PCEPMessageFactory.generateMessage(respFrame);

@@ -28,6 +28,7 @@ import com.pcee.logger.Logger;
 import com.pcee.protocol.message.PCEPMessage;
 import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
+import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
@@ -435,6 +436,9 @@ public class ConnectorGUI extends JFrame implements ActionListener {
 		PCEPAddress destAddress = new PCEPAddress(serverAddressTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
 
 		PCEPRequestFrame requestMessage = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
+		
+		PCEPBandwidthObject bw = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", 5);
+		requestMessage.insertBandwidthObject(bw);
 		PCEPMessage message = PCEPMessageFactory.generateMessage(requestMessage);
 
 		message.setAddress(destAddress);

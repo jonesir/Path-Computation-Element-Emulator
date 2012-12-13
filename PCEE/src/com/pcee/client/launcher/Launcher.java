@@ -65,7 +65,7 @@ public class Launcher {
 		maxBandwidth = Double.parseDouble(reader.getProperty("maxBandwidth"));
 		minDelay = Double.parseDouble(reader.getProperty("minDelay"));
 		maxDelay = Double.parseDouble(reader.getProperty("maxDelay"));
-		initDelay = Double.parseDouble(reader.getProperty("initDelay"));
+//		initDelay = Double.parseDouble(reader.getProperty("initDelay"));
 		minCPU = Integer.parseInt(reader.getProperty("minCPU"));
 		maxCPU = Integer.parseInt(reader.getProperty("maxCPU"));
 		minRAM = Integer.parseInt(reader.getProperty("minRAM"));
@@ -78,7 +78,12 @@ public class Launcher {
 		endTime = Integer.parseInt(reader.getProperty("endTime"));
 		interArrivalTime = Double.parseDouble(reader.getProperty("interArrivalTime"));
 		holdingTime = Double.parseDouble(reader.getProperty("holdingTime"));
+		
+		Logger.debugging = reader.getProperty("debugging").equalsIgnoreCase("on");
+		Logger.logging = reader.getProperty("logging").equalsIgnoreCase("on");
 
+		checkInitParams();
+		
 		// Initialize Multi-Domain Information
 		MultiDomainReserveRelease.parseMultiDomainInfo("multiDomainInfoClient.txt");
 
@@ -226,7 +231,7 @@ public class Launcher {
 	}
 
 	public static boolean itOrNormal() {
-		return random.nextInt(endTime) <= endTime*itRequestPercent/100;
+		return isITRequest = random.nextInt(endTime) <= endTime*itRequestPercent/100;
 	}
 
 	public static void main(String[] args) {
@@ -284,6 +289,27 @@ public class Launcher {
 	 */
 	private static void localDebugger(String event) {
 		// Logger.debugger("[Launcher]     " + event);
+	}
+	
+	private static void checkInitParams(){
+		System.out.println("roundCount = " + roundCount);
+		System.out.println("minCPU = " + minCPU);
+		System.out.println("maxCPU = " + maxCPU);
+		System.out.println("minRAM = " + minRAM);
+		System.out.println("maxRAM = " + maxRAM);
+		System.out.println("minSTORAGE = " + minSTORAGE);
+		System.out.println("maxSTORAGE = " + maxSTORAGE);
+		System.out.println("startTime = " + startTime);
+		System.out.println("endTime = " + endTime);
+		System.out.println("interArrivalTime = " + interArrivalTime);
+		System.out.println("holdingTime = " + holdingTime);
+		System.out.println("minBandwidth = " + minBandwidth);
+		System.out.println("maxBandwidth = " + maxBandwidth);
+		System.out.println("initBandwidth = " + initBandwidth);
+		System.out.println("minDelay = " + minDelay);
+		System.out.println("maxDelay = " + maxDelay);
+		System.out.println("initDelay = " + initDelay);
+		System.out.println("itRequestPercent = " + itRequestPercent);
 	}
 
 }

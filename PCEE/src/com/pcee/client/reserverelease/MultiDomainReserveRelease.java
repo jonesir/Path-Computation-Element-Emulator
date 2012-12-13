@@ -191,6 +191,7 @@ public class MultiDomainReserveRelease {
 	}
 
 	public static void itReserve(int cpu, int ram, int storage, String itID, boolean domain) {
+		System.out.println("Making IT Request!!");
 		PCEPAddress ipAddress;
 		if (domain) {
 			ipAddress = topologyUpdateServerinfo.get(nodeDomainMapping.get(itID));

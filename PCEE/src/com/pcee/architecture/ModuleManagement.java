@@ -95,6 +95,9 @@ public class ModuleManagement {
 					.getProperty("sessionThreads"));
 			computationThreads = Integer.valueOf(reader
 					.getProperty("computationThreads"));
+			
+			Logger.logging = reader.getProperty("logging").equalsIgnoreCase("on");
+			Logger.debugging = reader.getProperty("debug").equalsIgnoreCase("on");
 
 			if (running == false) {
 

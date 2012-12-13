@@ -70,6 +70,7 @@ public class SinglePathResvElement extends ResvElement {
 		
 		MultiDomainReserveRelease.reserve(bw, vertexSequence);
 		if(Launcher.isITRequest){
+			System.out.println("IT Request in ReserveElement!");
 			MultiDomainReserveRelease.itReserve(cpu, ram, storage, vertexSequence.get(vertexSequence.size()-1), true);
 		}
 		return true;
