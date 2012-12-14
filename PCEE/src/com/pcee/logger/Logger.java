@@ -83,10 +83,10 @@ public class Logger {
 	}
 
 	public static synchronized void logSystemEvents(String msg) {
-//		if (logging) {
-//			String timeStamp = Time.timeStamp();
-//			System.out.println(timeStamp + " " + msg);
-//		}
+		if (logging) {
+			String timeStamp = Time.timeStamp();
+			System.out.println(timeStamp + " " + msg);
+		}
 	}
 
 	public static void debugger(String msg) {

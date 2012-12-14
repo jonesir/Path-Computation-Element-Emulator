@@ -29,7 +29,6 @@ import com.pcee.architecture.computationmodule.ComputationModuleDomainImpl;
 import com.pcee.architecture.computationmodule.ComputationModuleParentImpl;
 import com.pcee.architecture.computationmodule.ted.TopologyInformationDomain;
 import com.pcee.architecture.computationmodule.ted.TopologyInformationParent;
-import com.pcee.architecture.computationmodule.ted.TopologyUpdateListener;
 import com.pcee.architecture.networkmodule.NetworkModule;
 import com.pcee.architecture.networkmodule.NetworkModuleImpl;
 import com.pcee.architecture.sessionmodule.SessionModule;
@@ -89,7 +88,6 @@ public class ModuleManagement {
 
 
 			port = Integer.valueOf(reader.getProperty("port"));
-			rrPort = Integer.valueOf(reader.getProperty("rrPort"));
 			
 			sessionThreads = Integer.valueOf(reader
 					.getProperty("sessionThreads"));
@@ -126,8 +124,6 @@ public class ModuleManagement {
 						TopologyInformationParent.setTopologyUpdatePort(Integer.parseInt(reader.getProperty("topologyUpdatePort")));
 						computationModule = new ComputationModuleParentImpl(this, computationThreads);
 					}
-//					TopologyUpdateListener listener = new TopologyUpdateListener(this, role, rrPort);
-//					listener.start();
 				} else {
 					clientModule = new ClientModuleImpl(this);
 				}

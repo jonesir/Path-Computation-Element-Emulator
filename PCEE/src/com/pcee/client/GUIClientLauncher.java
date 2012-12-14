@@ -47,9 +47,8 @@ import javax.swing.DefaultComboBoxModel;
 
 /**
  * @author Yuesheng Zhong
- *
+ * 
  */
-@SuppressWarnings("serial")
 public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private JPanel contentPane;
@@ -129,9 +128,10 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private ArrayList<String> vertexSequence1 = null;
 	private ArrayList<String> vertexSequence2 = null;
 
-	private ModuleManagement lm1;
-	private ModuleManagement lm2;
+	private ModuleManagement lm = new ModuleManagement(false);;
 	private JButton button;
+	
+	private String projectPath = "F:\\Users\\joneisr-ssd\\Documents\\GitHub\\jonesir\\Path-Computation-Element-Emulator\\PCEE\\";
 
 	/**
 	 * Launch the application.
@@ -604,10 +604,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// new ModuleManagement(true, "initParent.cfg");
-		Runtime r = Runtime.getRuntime();
 		try {
-			r.exec("java -jar PCE.jar initParent.cfg");
+			Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initParent.cfg > " + this.projectPath + "parentLog.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -618,10 +616,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void startDomainServer1() {
 		if (this.parentStarted) {
-			// new ModuleManagement(true, "initDomain1.cfg");
-			Runtime r = Runtime.getRuntime();
 			try {
-				r.exec("java -jar PCE.jar initDomain1.cfg");
+				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain1.cfg > " + this.projectPath + "domain1Log.txt");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -633,12 +629,9 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void startDomainServer2() {
 		if (this.parentStarted) {
-			// new ModuleManagement(true, "initDomain2.cfg");
-			Runtime r = Runtime.getRuntime();
 			try {
-				r.exec("java -jar PCE.jar initDomain2.cfg");
+				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain2.cfg > " + this.projectPath + "domain2Log.txt");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			this.domain2ServerStarted = true;
@@ -649,9 +642,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void establishConnection1() {
 		if (this.domain1ServerStarted && !this.connect1Established) {
-			this.lm1 = new ModuleManagement(false);
 			PCEPAddress serverAddress = new PCEPAddress(this.domainServerAddress1, this.domainServerPort1);
-			this.lm1.getClientModule().registerConnection(serverAddress, false, true, true);
+			this.lm.getClientModule().registerConnection(serverAddress, false, true, true);
 
 			this.connect1Established = true;
 			this.btnConnectWithDomain_1.setBackground(Color.GREEN);
@@ -661,9 +653,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 	private void establishConnection2() {
 		if (this.domain2ServerStarted && !this.connect2Established) {
-			this.lm2 = new ModuleManagement(false);
 			PCEPAddress serverAddress = new PCEPAddress(this.domainServerAddress2, this.domainServerPort2);
-			this.lm2.getClientModule().registerConnection(serverAddress, false, true, true);
+			this.lm.getClientModule().registerConnection(serverAddress, false, true, true);
 
 			this.connect2Established = true;
 			this.btnConnectWithDomain_2.setBackground(Color.GREEN);
@@ -724,11 +715,11 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 			message.setAddress(destAddress);
 
-			this.lm1.getClientModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
+			this.lm.getClientModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
 
 			PCEPMessage responseMessage = null;
 			try {
-				responseMessage = ((ClientModuleImpl) this.lm1.getClientModule()).receiveQueue.take();
+				responseMessage = ((ClientModuleImpl) this.lm.getClientModule()).receiveQueue.take();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -736,7 +727,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			if (responseMessage != null) {
 				updateResult1(PCEPResponseFrameFactory.getPathComputationResponseFrame(responseMessage));
 			}
-			
+
 			this.rrResultDomain_1.setText("");
 		}
 	}
@@ -778,11 +769,11 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 
 			message.setAddress(destAddress);
 
-			this.lm2.getClientModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
+			this.lm.getClientModule().sendMessage(message, ModuleEnum.SESSION_MODULE);
 
 			PCEPMessage responseMessage = null;
 			try {
-				responseMessage = ((ClientModuleImpl) this.lm2.getClientModule()).receiveQueue.take();
+				responseMessage = ((ClientModuleImpl) this.lm.getClientModule()).receiveQueue.take();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -790,7 +781,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			if (responseMessage != null) {
 				updateResult2(PCEPResponseFrameFactory.getPathComputationResponseFrame(responseMessage));
 			}
-			
+
 			this.rrResultDomain_2.setText("");
 		}
 	}
@@ -827,7 +818,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 		updateString += "</center></html>";
 
 		this.taResultDomain_1.setText(updateString);
-		if (!response.containsNoPathObject() && (this.hasBandwidth1||this.isITRequest1)) {
+		if (!response.containsNoPathObject() && (this.hasBandwidth1 || this.isITRequest1)) {
 			assignVertexSequence1(objs);
 			enableReserve1();
 		}
@@ -896,7 +887,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 				updateString += "<font color='purple'>Bandwidth : " + this.bandwidth1 + "</font> has been released along the path<br>";
 		}
 		updateString += "</center></html>";
-		
+
 		this.rrResultDomain_1.setText(updateString);
 	}
 
@@ -914,12 +905,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 				updateString += "<font color='purple'>Bandwidth : " + this.bandwidth2 + "</font> has been released along the path<br>";
 		}
 		updateString += "</center></html>";
-		
+
 		this.rrResultDomain_2.setText(updateString);
 	}
-	
-	public void windowClosing(WindowEvent e){
-		
-	}
-
 }

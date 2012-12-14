@@ -24,16 +24,12 @@ public class ReserveConnection extends Event {
 		boolean temp = element.reserveConnection();
 
 		if (temp == true) {
-			System.out.println("TEMP ================ TRUE");
 			EventHandler.addEvent(new ReleaseConnection(element, source));
 			source.connectionReserved();
 		} else {
 			source.connectionBlocked();
 		}
 		source.nextRequest(true);// insert new path computation request
-		if (Integer.parseInt(element.getResvID()) >= 1000) {
-			source.logGraphState();
-		}
 
 	}
 

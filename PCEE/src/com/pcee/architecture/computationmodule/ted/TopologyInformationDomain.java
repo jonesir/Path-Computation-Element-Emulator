@@ -252,7 +252,6 @@ public class TopologyInformationDomain {
 				}
 			}
 		}
-
 	}
 
 	public Gcontroller getVirtualGraph() {
@@ -369,6 +368,7 @@ public class TopologyInformationDomain {
 							// nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
 							ArrayList vertexSequence = ((ArrayList) input.get("vertexSequence"));
+							System.out.println("Bandwidth Reserve Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
 							synchronized (graph) {
 								for (int i = 0; i < vertexSequence.size() - 1; i++) {
 									String sourceID = (String) vertexSequence.get(i);
@@ -406,6 +406,7 @@ public class TopologyInformationDomain {
 							// nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
 							ArrayList vertexSequence = ((ArrayList) input.get("vertexSequence"));
+							System.out.println("Bandwidth Release Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
 							synchronized (graph) {
 								for (int i = 0; i < vertexSequence.size() - 1; i++) {
 									String sourceID = (String) vertexSequence.get(i);
@@ -438,16 +439,23 @@ public class TopologyInformationDomain {
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - release");
 						} else if (input.get("operation").toString().equalsIgnoreCase("updateVirtualTopologyBandwidth")) {
+							System.out.println("updateVirtualTopologyBandwidth Request");
 							Iterator<EdgeElement> iter = virtualGraph.getEdgeSet().iterator();
 							while (iter.hasNext()) {
 								PathElementEdgeParams temp = (PathElementEdgeParams) iter.next().getEdgeParams();
 								TopologyUpdateParentClient.updateEdge(topologyUpdateParentIP, topologyUpdateParentPort, temp.getPath());
 							}
+							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - updateVirtualTopologyBandwidth");
 						} else if (input.get("operation").toString().equalsIgnoreCase("recomputeVirtualTopology")) {
 							// Computes a new virtual Graph
 							// Update to parent sent within the generation code
+							System.out.println("recomputeVirtualTopology Request");
 							generateVirtualGraph();
+							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - recomputeVirtualTopology");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
+							System.out.println("IT Resource Reserve Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString())
+									+ ", RAM=" + (int) Double.parseDouble(input.get("ram").toString())
+									+ ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
 							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
 								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
 								int ram = (int) Double.parseDouble(input.get("ram").toString());
@@ -465,10 +473,13 @@ public class TopologyInformationDomain {
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - itReserve");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
-							int cpu = (int) Double.parseDouble(input.get("cpu").toString());
-							int ram = (int) Double.parseDouble(input.get("ram").toString());
-							int storage = (int) Double.parseDouble(input.get("storage").toString());
+							System.out.println("IT Resource Release Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString())
+									+ ", RAM=" + (int) Double.parseDouble(input.get("ram").toString())
+									+ ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
 							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
+								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
+								int ram = (int) Double.parseDouble(input.get("ram").toString());
+								int storage = (int) Double.parseDouble(input.get("storage").toString());
 								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(cpu, ram, storage)) {
 									localLogger("Can not reserve requested IT node with IT resource!");
 									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
@@ -483,6 +494,7 @@ public class TopologyInformationDomain {
 							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - itRelease");
 
 						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
+							System.out.println("UpdateVertex Request");
 							ITResourceVertexParams updateVertex;
 							for (VertexElement tmp : graph.getVertexSet()) {
 								if (tmp.isITNode()) {
@@ -490,6 +502,7 @@ public class TopologyInformationDomain {
 									TopologyUpdateParentClient.updateVertex(topologyUpdateParentIP, topologyUpdateParentPort, updateVertex.getAvailableCPU(), updateVertex.getAvailableRAM(), updateVertex.getAvailableSTORAGE(), updateVertex.getVertexElement().getVertexID());
 								}
 							}
+							Logger.graphSnapshot(graph, "TopologyInformationDomain.java - updateVertex");
 						}
 
 					}
@@ -498,7 +511,6 @@ public class TopologyInformationDomain {
 					localLogger("Malformed Json sent from Client" + e.getMessage());
 				} catch (Exception e) {
 					localLogger("Invalid parameters sent in the JSON from Client : " + e.getMessage());
-
 				}
 
 			}

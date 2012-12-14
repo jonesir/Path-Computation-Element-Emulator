@@ -4265,3 +4265,50 @@ R-CPU: 2 , R-RAM: 0 , R-Storage: 452
 availabe CPU : 20, required CPU : 2
 availabe RAM : 10240, required RAM : 0
 availabe STO : 3200, required STO : 452
+R-CPU: 2 , R-RAM: 156 , R-Storage: 615
+192.168.2.5 is not IT node
+192.168.2.15 is not IT node
+192.168.2.14 is not IT node
+availabe CPU : 20, required CPU : 2
+availabe RAM : 10240, required RAM : 156
+availabe STO : 3200, required STO : 615
+R-CPU: 3 , R-RAM: 0 , R-Storage: 907
+192.169.2.4 is not IT node
+192.169.2.3 is not IT node
+availabe CPU : 20, required CPU : 3
+availabe RAM : 10240, required RAM : 0
+availabe STO : 3200, required STO : 907
+R-CPU: 3 , R-RAM: 0 , R-Storage: 718
+192.169.2.14 is not IT node
+192.169.2.8 is not IT node
+192.169.2.10 is not IT node
+192.169.2.13 is not IT node
+192.169.2.15 is not IT node
+192.169.2.9 is not IT node
+192.169.2.2 is not IT node
+availabe CPU : 20, required CPU : 3
+availabe RAM : 10240, required RAM : 0
+availabe STO : 3200, required STO : 718
+R-CPU: 4 , R-RAM: 0 , R-Storage: 268
+192.168.2.12 is not IT node
+192.168.2.9 is not IT node
+192.168.2.3 is not IT node
+192.168.2.8 is not IT node
+192.168.2.10 is not IT node
+192.168.2.13 is not IT node
+availabe CPU : 20, required CPU : 4
+availabe RAM : 10240, required RAM : 0
+availabe STO : 3200, required STO : 268
+R-CPU: 3 , R-RAM: 0 , R-Storage: 422
+192.168.2.8 is not IT node
+availabe CPU : 20, required CPU : 3
+availabe RAM : 10240, required RAM : 0
+availabe STO : 3200, required STO : 422
+R-CPU: 2 , R-RAM: 0 , R-Storage: 452
+192.168.2.5 is not IT node
+192.168.2.6 is not IT node
+192.168.2.13 is not IT node
+192.168.2.14 is not IT node
+availabe CPU : 20, required CPU : 2
+availabe RAM : 10240, required RAM : 0
+availabe STO : 3200, required STO : 452
