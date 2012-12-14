@@ -47,23 +47,21 @@ public class SingleVertexAlgorithmImpl implements VertexAlgorithm {
 				if ((params.getAvailableCPU() >= constraint.getCPU()) && (params.getAvailableRAM() >= constraint.getRAM()) && (params.getAvailableSTORAGE() >= constraint.getSTORAGE())) {
 					return testElement;
 				}
-			}else{
-				SingleVertexAlgorithmImpl.debug(testElement.getVertexID() + " is not IT node");
 			}
 		}
 		return null;
 	}
 	
 	public static void debug(String debugString) {
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(new File("./debugFile.txt"), true));
-			bw.write(debugString + "\n");
-			bw.flush();
-			bw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			BufferedWriter bw = new BufferedWriter(new FileWriter(new File("./debugFile.txt"), true));
+//			bw.write(debugString + "\n");
+//			bw.flush();
+//			bw.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	public static void main(String[] args){

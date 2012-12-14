@@ -1,8 +1,1 @@
-Total_Request	8
-Total_Blocks	1
-Blocking_Rate	12.5%
-Average_Signaling_Delay_of_Getting_PATH_in_Milliseconds	46
-Average_Signaling_Delay_of_Getting_PATH_in_Nanoseconds	45996523
-
-================================================================
 

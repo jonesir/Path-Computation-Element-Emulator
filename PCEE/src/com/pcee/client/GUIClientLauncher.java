@@ -605,7 +605,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 		try {
-			Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initParent.cfg > " + this.projectPath + "parentLog.txt");
+//			Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initParent.cfg > " + this.projectPath + "parentLog.txt");
+			Runtime.getRuntime().exec("java -jar PCE.jar initParent.cfg");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -617,7 +618,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private void startDomainServer1() {
 		if (this.parentStarted) {
 			try {
-				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain1.cfg > " + this.projectPath + "domain1Log.txt");
+//				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain1.cfg > " + this.projectPath + "domain1Log.txt");
+				Runtime.getRuntime().exec("java -jar PCE.jar initDomain1.cfg");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -630,7 +632,8 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private void startDomainServer2() {
 		if (this.parentStarted) {
 			try {
-				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain2.cfg > " + this.projectPath + "domain2Log.txt");
+//				Runtime.getRuntime().exec("java -jar " + this.projectPath + "PCE.jar " + this.projectPath + "initDomain2.cfg > " + this.projectPath + "domain2Log.txt");
+				Runtime.getRuntime().exec("java -jar PCE.jar initDomain2.cfg");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
