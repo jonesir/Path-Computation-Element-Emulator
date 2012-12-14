@@ -441,8 +441,10 @@ public class TopologyInformationParent {
 					Map input = json.fromJson(text, Map.class);
 					if (input.containsKey("operation")) {
 						if (input.get("operation").toString().equalsIgnoreCase("updateEdgeDefinition")) {
-							//Request to update the Edge Definition
-							System.out.println("UpdateEdgeDefinition Request");
+							if (Logger.debugging) {
+								//Request to update the Edge Definition
+								System.out.println("UpdateEdgeDefinition Request");
+							}
 							double capacity = Double.parseDouble(input.get("capacity").toString());
 							double weight = Double.parseDouble(input.get("weight").toString());
 							double delay = Double.parseDouble(input.get("delay").toString());
@@ -468,7 +470,9 @@ public class TopologyInformationParent {
 							//Request to reserve capacity on a sequence of nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
 							ArrayList vertexSequence = ((ArrayList)input.get("vertexSequence"));
-							System.out.println("Bandwidth Reserve Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
+							if (Logger.debugging) {
+								System.out.println("Bandwidth Reserve Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
+							}
 							synchronized(graph) {
 								for (int i=0;i<vertexSequence.size()-1;i++){
 									String sourceID = (String)vertexSequence.get(i);
@@ -502,7 +506,9 @@ public class TopologyInformationParent {
 							//Request to reserve capacity on a sequence of nodes
 							double capacity = Double.parseDouble(input.get("capacity").toString());
 							ArrayList vertexSequence = ((ArrayList)input.get("vertexSequence"));
-							System.out.println("Bandwidth Release Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
+							if (Logger.debugging) {
+								System.out.println("Bandwidth Release Request : Capacity=" + capacity + ", Path=" + vertexSequence.toString());
+							}
 							synchronized(graph) {
 								for (int i=0;i<vertexSequence.size()-1;i++){
 									String sourceID = (String)vertexSequence.get(i);
@@ -533,9 +539,9 @@ public class TopologyInformationParent {
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationParent.java - release");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
-							System.out.println("IT Resource Reserve Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString())
-									+ ", RAM=" + (int) Double.parseDouble(input.get("ram").toString())
-									+ ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
+							if (Logger.debugging) {
+								System.out.println("IT Resource Reserve Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString()) + ", RAM=" + (int) Double.parseDouble(input.get("ram").toString()) + ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
+							}
 							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
 								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
 								int ram = (int) Double.parseDouble(input.get("ram").toString());
@@ -552,9 +558,9 @@ public class TopologyInformationParent {
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itReserve");
 						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
-							System.out.println("IT Resource Release Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString())
-									+ ", RAM=" + (int) Double.parseDouble(input.get("ram").toString())
-									+ ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
+							if (Logger.debugging) {
+								System.out.println("IT Resource Release Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString()) + ", RAM=" + (int) Double.parseDouble(input.get("ram").toString()) + ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
+							}
 							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
 								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
 								int ram = (int) Double.parseDouble(input.get("ram").toString());
@@ -571,7 +577,9 @@ public class TopologyInformationParent {
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itRelease");
 						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
-							System.out.println("UpdateVertex Request");
+							if (Logger.debugging) {
+								System.out.println("UpdateVertex Request");
+							}
 							if(graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()){
 								int cpu = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableCPU() - (int)Double.parseDouble(input.get("cpu").toString());
 								int ram = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableRAM() - (int)Double.parseDouble(input.get("ram").toString());

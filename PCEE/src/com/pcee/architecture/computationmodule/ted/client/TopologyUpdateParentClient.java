@@ -12,14 +12,16 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.graph.elements.vertex.VertexElement;
 import com.graph.path.PathElement;
+import com.pcee.logger.Logger;
 
 public class TopologyUpdateParentClient {
 
 	private static Gson gson = new Gson();
 
 	public static void sendMessage(String ip, int port, String text) {
-		System.out.println("Attempting a connection to " + ip + ":" + port + " String = " + text);
-
+		if (Logger.debugging) {
+			System.out.println("Attempting a connection to " + ip + ":" + port + " String = " + text);
+		}
 		Socket socket = null;
 		BufferedOutputStream out = null;
 		try {
