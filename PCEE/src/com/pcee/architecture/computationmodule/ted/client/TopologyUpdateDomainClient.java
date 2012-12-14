@@ -37,8 +37,10 @@ public class TopologyUpdateDomainClient {
 			// 1. creating a socket to connect to the server
 			socket = new Socket(ip, port);
 			out = new BufferedOutputStream(socket.getOutputStream());
-			// 3: Communicating with the server
-			System.out.println(new String(text.getBytes()));
+			if (Logger.debugging) {
+				// 3: Communicating with the server
+				System.out.println(new String(text.getBytes()));
+			}
 			out.write(text.getBytes());
 			out.flush();
 		} catch (UnknownHostException e) {
