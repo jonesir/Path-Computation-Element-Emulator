@@ -23,7 +23,6 @@ import com.pcee.protocol.message.PCEPMessageFrame;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
-import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPMetricObject;
@@ -40,7 +39,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 	PCEPLabelSwitchedPathAttributesObject LSPA;
 	LinkedList<PCEPMetricObject> metricList;
 	PCEPIncludeRouteObject IRO;
-	PCEPITResourceObject it;
 
 	LinkedList<PCEPBandwidthObject> bwList;
 	LinkedList<PCEPExplicitRouteObject> EROList;
@@ -127,10 +125,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 		this.EROList = EROList;
 	}
 	
-	public void insertITResourceObject(PCEPITResourceObject it) {
-		this.it = it;
-	}
-
 	// EXTRACT METHODS
 
 	public PCEPNoPathObject extractNoPathObject() {
@@ -175,13 +169,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 		return null;
 	}
 	
-	public PCEPITResourceObject extractITResourceObject() {
-		if (containsITResourceObject()) {
-			return it;
-		}
-		return null;
-	}
-
 	// CONTAINS METHODS
 	
 	public boolean containsNoPathObject() {
@@ -226,13 +213,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 		return true;
 	}
 	
-	public boolean containsITResourceObject() {
-		if (it == null) {
-			return false;
-		}
-		return true;
-	}
-
 	// INTERFACE METHODS
 
 	public int getByteLength() {
@@ -264,10 +244,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 				length += EROList.get(i).getObjectFrameByteLength();
 			}
 		}
-		if (containsITResourceObject()) {
-			length += it.getObjectFrameByteLength();
-		}
-		
 		return length;
 	}
 
@@ -304,9 +280,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 						.getObjectFrameBinaryString());
 			}
 		}
-		if (containsITResourceObject()) {
-			objectsString.append(it.getObjectFrameBinaryString());
-		}
 
 		return objectsString.toString();
 	}
@@ -341,9 +314,6 @@ public class PCEPResponseFrame implements PCEPMessageFrame {
 			for (int i = 0; i < EROList.size(); i++) {
 				respondObjects.add(EROList.get(i));
 			}
-		}
-		if (containsITResourceObject()) {
-			respondObjects.add(it);
 		}
 		return respondObjects;
 	}

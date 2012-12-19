@@ -44,7 +44,6 @@ import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPGenericExplicitRouteObjectImpl;
-import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPNoPathObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.EROSubobjects;
@@ -77,17 +76,6 @@ public class WorkerTaskDomain extends WorkerTask {
 
 
 	public void processSingleDomainRequest() {
-		// find an IT node in case of IT request and set the destination to the found IT node
-		if (request.isITRequest()){
-			VertexElement itNode = request.getVAlgorithm().searchVertex(graph, request.getVConstraints());
-			if (itNode != null) {
-				request.getConstrains().setDestination(itNode);
-				request.setDestRouterIP(itNode.getVertexID());
-			} else {
-				processMultiDomainRequest();
-			}
-		}
-		
 		// Initialize response object and set parameters
 		// Compute path
 		PathElement element = request.getAlgo().computePath(graph, request.getConstrains());
@@ -284,11 +272,6 @@ public class WorkerTaskDomain extends WorkerTask {
 			requestMessage.insertBandwidthObject(bw);
 		}
 		
-		if (request.isITRequest()){
-			PCEPITResourceObject it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, request.getVConstraints().getCPU(), request.getVConstraints().getRAM(), request.getVConstraints().getSTORAGE());
-			requestMessage.insertITResourceObject(it);
-		}
-
 		PCEPMessage message = PCEPMessageFactory.generateMessage(requestMessage);
 
 		// Address destAddress = new Address(serverAddressTextField.getText());

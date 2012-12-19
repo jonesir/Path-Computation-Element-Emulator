@@ -25,7 +25,6 @@ import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPExplicitRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPGenericExplicitRouteObjectImpl;
-import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPMetricObject;
@@ -52,7 +51,6 @@ public class PCEPResponseFrameFactory {
 		LinkedList<PCEPMetricObject> metricList = null;
 		PCEPIncludeRouteObject IRO = null;
 		LinkedList<PCEPExplicitRouteObject> EROList = null;
-		PCEPITResourceObject it = null;
 
 		LinkedList<PCEPObjectFrame> objectList = message.getObjectsList();
 
@@ -118,11 +116,6 @@ public class PCEPResponseFrameFactory {
 				break;
 			}
 			
-			case 16: {
-				it = (PCEPITResourceObject) objectFrame;
-				break;
-			}
-
 			default: {
 				break;
 			}
@@ -153,10 +146,6 @@ public class PCEPResponseFrameFactory {
 		
 		if (EROList != null) {
 			responseFrame.insertExplicitRouteObjectList(EROList);
-		}
-		
-		if (it != null) {
-			responseFrame.insertITResourceObject(it);
 		}
 		
 		return responseFrame;

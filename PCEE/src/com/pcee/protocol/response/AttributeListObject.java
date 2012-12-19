@@ -21,7 +21,6 @@ import java.util.LinkedList;
 
 import com.pcee.protocol.message.objectframe.PCEPObjectFrame;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
-import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPIncludeRouteObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPLabelSwitchedPathAttributesObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPMetricObject;
@@ -32,7 +31,6 @@ public class AttributeListObject {
 	PCEPBandwidthObject bandwidth;
 	LinkedList<PCEPMetricObject> metricList;
 	PCEPIncludeRouteObject IRO;
-	PCEPITResourceObject it;
 
 	//Insert Methods
 	
@@ -64,13 +62,6 @@ public class AttributeListObject {
 		this.IRO = IRO;
 	}
 	
-	/**
-	 * @param it
-	 */
-	public void insertITResourceObject(PCEPITResourceObject it){
-		this.it = it;
-	}
-
 	// Contains Methods
 	
 	/**
@@ -114,17 +105,6 @@ public class AttributeListObject {
 	}
 	
 	/**
-	 * @return
-	 */
-	public boolean containsITResourceObject(){
-		if(it == null){
-			return false;
-		}
-		return true;
-	}
-
-	
-	/**
 	 * @return LinkedList of PCEPObjectFrame
 	 */
 	public LinkedList<PCEPObjectFrame> getObjectFrameList() {
@@ -146,10 +126,6 @@ public class AttributeListObject {
 			objectsLinkedList.add(IRO);
 		}
 		
-		if (it != null){
-			objectsLinkedList.add(it);
-		}
-
 		return objectsLinkedList;
 	}
 
@@ -174,10 +150,6 @@ public class AttributeListObject {
 			length += IRO.getObjectFrameByteLength();
 		}
 		
-		if (it != null) {
-			length += it.getObjectFrameByteLength();
-		}
-
 		return length;
 	}
 
@@ -203,10 +175,6 @@ public class AttributeListObject {
 			objectsString.append(IRO.getObjectFrameBinaryString());
 		}
 		
-		if (it != null) {
-			objectsString.append(it.getObjectFrameBinaryString());
-		}
-
 		return objectsString.toString();
 	}
 

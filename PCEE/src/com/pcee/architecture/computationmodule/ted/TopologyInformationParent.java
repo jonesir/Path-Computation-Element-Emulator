@@ -39,7 +39,6 @@ import com.graph.elements.edge.params.EdgeParams;
 import com.graph.elements.edge.params.impl.ParentVirtualLinkEdgeParams;
 import com.graph.elements.edge.params.impl.PathElementEdgeParams;
 import com.graph.elements.vertex.VertexElement;
-import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.graphcontroller.impl.GcontrollerImpl;
 import com.graph.path.PathElement;
@@ -538,59 +537,7 @@ public class TopologyInformationParent {
 								}
 							}
 							Logger.graphSnapshot(graph, "TopologyInformationParent.java - release");
-						} else if (input.get("operation").toString().equalsIgnoreCase("itReserve")) {
-							if (Logger.debugging) {
-								System.out.println("IT Resource Reserve Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString()) + ", RAM=" + (int) Double.parseDouble(input.get("ram").toString()) + ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
-							}
-							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
-								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
-								int ram = (int) Double.parseDouble(input.get("ram").toString());
-								int storage = (int) Double.parseDouble(input.get("storage").toString());
-								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage)) {
-									localLogger("Can not reserve requested IT node with IT resource!");
-									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(cpu, ram, storage);
-								} else {
-									MultiDomainReserveRelease.itReserve(cpu, ram, storage, input.get("itID").toString(), true);
-								}
-
-							} else {
-								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
-							}
-							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itReserve");
-						} else if (input.get("operation").toString().equalsIgnoreCase("itRelease")) {
-							if (Logger.debugging) {
-								System.out.println("IT Resource Release Request : CPU=" + (int) Double.parseDouble(input.get("cpu").toString()) + ", RAM=" + (int) Double.parseDouble(input.get("ram").toString()) + ", STORAGE=" + (int) Double.parseDouble(input.get("storage").toString()));
-							}
-							if (graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()) {
-								int cpu = (int) Double.parseDouble(input.get("cpu").toString());
-								int ram = (int) Double.parseDouble(input.get("ram").toString());
-								int storage = (int) Double.parseDouble(input.get("storage").toString());
-								if (!((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).releaseITResource(cpu, ram, storage)) {
-									localLogger("Can not reserve requested IT node with IT resource!");
-									((ITResourceVertexParams) graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
-								} else {
-									MultiDomainReserveRelease.itRelease(cpu, ram, storage, input.get("itID").toString(), true);
-								}
-
-							} else {
-								localLogger("Invalid IT NODE " + input.get("itID").toString() + "Vertex!!");
-							}
-							Logger.graphSnapshot(graph, "TopologyInformationParent.java - itRelease");
-						} else if (input.get("operation").toString().equalsIgnoreCase("updateVertex")) {
-							if (Logger.debugging) {
-								System.out.println("UpdateVertex Request");
-							}
-							if(graph.vertexExists(input.get("itID").toString()) && graph.getVertex(input.get("itID").toString()).isITNode()){
-								int cpu = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableCPU() - (int)Double.parseDouble(input.get("cpu").toString());
-								int ram = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableRAM() - (int)Double.parseDouble(input.get("ram").toString());
-								int storage = ((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).getAvailableSTORAGE() - (int)Double.parseDouble(input.get("storage").toString());
-								((ITResourceVertexParams)graph.getVertex(input.get("itID").toString()).getVertexParams()).reserveITResource(cpu, ram, storage);
-							} else {
-								localLogger("Invalid IT node ID " + input.get("itID").toString());
-							}
-							Logger.graphSnapshot(graph, "TopologyInformationParent.java - updateVertex");
 						}
-						
 					}
 					
 				} catch (JsonSyntaxException e) {

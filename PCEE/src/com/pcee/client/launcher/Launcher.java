@@ -22,7 +22,6 @@ import com.pcee.protocol.message.PCEPMessageFactory;
 import com.pcee.protocol.message.objectframe.PCEPObjectFrameFactory;
 import com.pcee.protocol.message.objectframe.impl.PCEPBandwidthObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPEndPointsObject;
-import com.pcee.protocol.message.objectframe.impl.PCEPITResourceObject;
 import com.pcee.protocol.message.objectframe.impl.PCEPRequestParametersObject;
 import com.pcee.protocol.message.objectframe.impl.erosubobjects.PCEPAddress;
 import com.pcee.protocol.request.PCEPRequestFrame;
@@ -194,19 +193,12 @@ public class Launcher {
 		PCEPAddress destinationAddress = new PCEPAddress(destID, false);
 
 		PCEPBandwidthObject bandwidthObject = PCEPObjectFrameFactory.generatePCEPBandwidthObject("1", "0", (float) bandwidth);
-		PCEPITResourceObject it = null;
-		if (isITRequest)
-			it = PCEPObjectFrameFactory.generatePCEPITResourceObject("1", "0", 0, cpu, ram, storage);
 
 		PCEPRequestParametersObject RP = PCEPObjectFrameFactory.generatePCEPRequestParametersObject("1", "0", "0", "1", "1", "0", "432");
 		PCEPEndPointsObject endPoints = PCEPObjectFrameFactory.generatePCEPEndPointsObject("1", "0", sourceAddress, destinationAddress);
 		PCEPRequestFrame requestMessage = PCEPRequestFrameFactory.generatePathComputationRequestFrame(RP, endPoints);
+		requestMessage.insertBandwidthObject(bandwidthObject);
 		
-//		requestMessage.insertBandwidthObject(bandwidthObject);
-		if (it != null)
-			requestMessage.insertITResourceObject(it);
-
-
 		PCEPAddress destAddress = domainAddressMapping.get(nodeDomainMapping.get(sourceID));
 
 		PCEPMessage message = PCEPMessageFactory.generateMessage(requestMessage);
@@ -293,12 +285,6 @@ public class Launcher {
 	
 	private static void checkInitParams(){
 		System.out.println("roundCount = " + roundCount);
-		System.out.println("minCPU = " + minCPU);
-		System.out.println("maxCPU = " + maxCPU);
-		System.out.println("minRAM = " + minRAM);
-		System.out.println("maxRAM = " + maxRAM);
-		System.out.println("minSTORAGE = " + minSTORAGE);
-		System.out.println("maxSTORAGE = " + maxSTORAGE);
 		System.out.println("startTime = " + startTime);
 		System.out.println("endTime = " + endTime);
 		System.out.println("interArrivalTime = " + interArrivalTime);
@@ -309,7 +295,6 @@ public class Launcher {
 		System.out.println("minDelay = " + minDelay);
 		System.out.println("maxDelay = " + maxDelay);
 		System.out.println("initDelay = " + initDelay);
-		System.out.println("itRequestPercent = " + itRequestPercent);
 	}
 
 }

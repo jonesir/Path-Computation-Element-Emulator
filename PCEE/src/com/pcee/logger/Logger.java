@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.pcee.common.Time;
 import com.pcee.logger.logObjectImpl.ConsoleLogObject;
@@ -276,16 +275,9 @@ public class Logger {
 			updateString += "############### Time      : " + Time.timeStamp() + " ###############\n";
 			updateString += "############### className : " + className + " ###\n\n";
 			Set<String> edgeIDSet = graph.getEdgeIDSet();
-			Set<String> vertexIDSet = graph.getVertexIDSet();
 			for (String edgeID : edgeIDSet)
 				updateString += (edgeID + "\t : Bandwidth=" + graph.getEdge(edgeID).getEdgeParams().getAvailableCapacity()) + " , Delay=" + graph.getEdge(edgeID).getEdgeParams().getDelay() + "\n";
 			updateString += "\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n";
-			for (String vertexID : vertexIDSet) {
-				if (graph.getVertex(vertexID).isITNode()) {
-					ITResourceVertexParams vertexParams = (ITResourceVertexParams) graph.getVertex(vertexID).getVertexParams();
-					updateString += vertexID + "\t : CPU - " + vertexParams.getAvailableCPU() + " , RAM - " + vertexParams.getAvailableRAM() + " , STORAGE - " + vertexParams.getAvailableSTORAGE() + "\n";
-				}
-			}
 			updateString += "##########################################################\n\n\n";
 			//		try {
 			//			BufferedWriter writer = new BufferedWriter(new FileWriter("graphSnapshots.txt",true));

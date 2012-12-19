@@ -80,18 +80,6 @@ public class WorkerTaskParent extends WorkerTask {
 	 */
 	public void processRequest() {
 
-		// find an IT node in case of IT request and set the destination to the
-		// found IT node
-		if (request.isITRequest()) {
-			VertexElement itNode = request.getVAlgorithm().searchVertex(graph, request.getVConstraints());
-			if (itNode != null) {
-				request.getConstrains().setDestination(itNode);
-				request.setDestRouterIP(itNode.getVertexID());
-			} else {
-				returnNoPathMessage();
-			}
-		}
-
 		// Check if the destimation is a border node (i.e. is on the virtual
 		// graph)
 		if (graph.vertexExists(request.getDestRouterIP())) {

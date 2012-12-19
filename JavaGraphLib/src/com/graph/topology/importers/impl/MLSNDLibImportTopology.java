@@ -31,7 +31,6 @@ import com.graph.elements.edge.params.EdgeParams;
 import com.graph.elements.edge.params.impl.BasicEdgeParams;
 import com.graph.elements.vertex.VertexElement;
 import com.graph.elements.vertex.params.BasicVertexParams;
-import com.graph.elements.vertex.params.ITResourceVertexParams;
 import com.graph.elements.vertex.params.VertexParams;
 import com.graph.graphcontroller.Gcontroller;
 import com.graph.graphcontroller.impl.GcontrollerImpl;
@@ -83,33 +82,6 @@ public class MLSNDLibImportTopology extends ImportTopology {
 				}
 				count = 0;
 				vertex1 = new VertexElement(sourceID, graph, temp1[0], temp1[1]);
-				// BasicVertexParams param = new BasicVertexParams();
-				// ITResourceVertexParams param;
-				VertexParams param;
-				int[] itValues = new int[3];
-				if (m.find()) {
-					String bOrI = m.group(0);
-					if (bOrI.equals("BORDER")) {
-//						System.out.println("Border Found!");
-						vertex1.setIsBorderNode(true);
-						param = new BasicVertexParams();
-						param.setVertexElement(vertex1);
-						vertex1.setVertexParams(param);
-					} else if (bOrI.equals("IT")) {
-//						System.out.println("IT Found!");
-						vertex1.setIsITNode(true);
-						while (m.find()) {
-							itValues[count] = Integer.parseInt(m.group(0));
-							count++;
-							if (count == 3)
-								break;
-						}
-						param = new ITResourceVertexParams(vertex1, sourceID, 0, itValues[0], itValues[1], itValues[2], 0);
-						param.setVertexElement(vertex1);
-						vertex1.setVertexParams(param);
-//						System.out.println("IT " + vertex1.getVertexID() + " cpu: " + itValues[0] + ", ram : " + itValues[1] + ", storage : " + itValues[2]);
-					}
-				}
 				graph.addVertex(vertex1);
 
 			}
