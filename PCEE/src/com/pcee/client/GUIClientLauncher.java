@@ -561,7 +561,7 @@ public class GUIClientLauncher extends JFrame implements ActionListener {
 	private void reserveRelease2() {
 		if (this.roleReserve2) {
 			makeReserve2();
-		} else if (!this.roleReserve2) {
+		}else{
 			makeRelease2();
 		}
 
