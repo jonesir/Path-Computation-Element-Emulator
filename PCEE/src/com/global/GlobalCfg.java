@@ -7,6 +7,22 @@ package com.global;
  * 
  */ 
 public class GlobalCfg {
+	
+	/** Parameter for presentation on conference in Lisbon, Portugal*/
+	public static int bandwidth = 3;
+	public static int pathCount = 1;
+	
+	 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/** Path Computation Request Address */
 	// public static String pcrAddress = "134.169.174.112";
 	public static String pcrAddress = "127.0.0.1";
@@ -19,8 +35,7 @@ public class GlobalCfg {
 	public static int prrPort = 4190;
 
 	
-	/** Define Path Count when doing Path Computation */
-	public static int pathCount = 1; // Need to change after each scenario and
+	
 	// should be equal to logFileName's
 	// count
 	
