@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Open Source PCE :: Project Info</title>
+<meta name="description" content="" />
+<meta name="generator" content="concrete5 - 5.6.1.2" />
+
+
+<!-- Site Header Content //-->
+
+<link rel="stylesheet" href="./css/reset.css" />
+
+
+</head>
+
+<body>
+
+	<!--start main container -->
+
+	<div id="main-container" class="container_24">
+
+		<div id="header">
+
+
+			<h1>
+				<a title="Home" href="/">Open
+					Source PCE</a>
+			</h1>
+			<ul class="nav">
+				<li class=""><a href="/" target="_self" class="">Home</a></li>
+				<li class="nav-selected nav-path-selected"><a
+					href="/index.php/project-info/" target="_self"
+					class="nav-selected nav-path-selected">Project Info</a></li>
+				<li class=""><a href="./topology.html" target="_self"
+					class="">Topology</a></li>
+			</ul>
+			<div id="header-image"></div>
+
+		</div>
+
+		<div class="clear"></div>
+
+		<div class="clear"></div>
+
+		<div id="left-sidebar-container" class="grid_8">
+
+			<div id="left-sidebar-inner">
+
+				<ul class="nav">
+					<li class=""><a href="/index.php/project-info/objectives/"
+						target="_self" class="">Project Objectives</a></li>
+					<li class=""><a href="/index.php/project-info/implementation/"
+						target="_self" class="">Implementation Details</a></li>
+				</ul>
+			</div>
+
+		</div>
+
+		<div id="main-content-container" class="grid_16">
+			<div id="main-content-inner">
+
+				<p>
+				<script type="text/javascript">
+				var url = "http://localhost:8080/rest/hello";
+//				var representationOfDesiredState = "The cheese is old and moldy, where is the bathroom?";
+
+				var client = new XMLHttpRequest();
+
+				client.open("GET", url, false);
+
+				client.setRequestHeader("Content-Type", "text/xml");
+
+				client.send();
+
+				if (client.status == 200)			    
+					document.getElementById("main-content-inner").innerHTML="<p>" + client.responseText + "</p>";
+				else
+				    alert("The request did not succeed!\n\nThe response status was: " + client.status + " " + client.statusText + ".");
+				
+				</script>
+				
+				</p>
+			</div>
+
+		</div>
+
+		<!-- end main content columns -->
+
+		<div class="clear"></div>
+
+		<div id="footer">
+
+			<div id="footer-inner">
+
+				<div class="clear"></div>
+				<p class="footer-copyright">&copy;2013 Open Source PCE.</p>
+				<!--<p class="footer-tag-line">Built with <a href="http://www.concrete5.org/" alt="Free Content Management System" target="_blank">concrete5 - an open source CMS</a></p>-->
+
+			</div>
+
+		</div>
+
+		<!-- end main container -->
+
+	</div>
+
+
+</body>
+</html>
